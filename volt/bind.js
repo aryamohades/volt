@@ -3,7 +3,8 @@ var VoltBind = (function() {
     'v-click': bindClick,
     'v-text': bindText,
     'v-for': bindFor,
-    'v-if': bindIf
+    'v-if': bindIf,
+    'ref': bindRef,
   }
 
   function getBindHandler(name) {
@@ -83,6 +84,20 @@ var VoltBind = (function() {
     }
 
     VoltComponent.addUpdate(watcher)
+  }
+
+  function bindRef(el, bindTo, scope, parentScope, loopScope) {
+    var value = getValueFromScope(bindTo, scope, parentScope, loopScope).value
+
+    if (value === null) {
+      scope.$refs[bindTo] = el
+    } else {
+      if (typeof value === 'function') {
+        value = value()
+      }
+
+      scope.$refs[value] = el
+    }
   }
 
   function bindText(el, bindTo, scope, parentScope, loopScope) {

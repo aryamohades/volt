@@ -50,7 +50,7 @@ Volt.template('app', `
       <span>Slot Content: </span><span @text="num.message"></span>
     </example>
   </div>
-  <example fnFromProps="fnAsProp" number="50">
+  <example @ref="lolref" fnFromProps="fnAsProp" number="50">
     <another></another>
     <button @click="logMessage">Log Message</button>
   </example>
@@ -68,6 +68,7 @@ Volt.component('app', {
 
   ready: function() {
     console.log('App mounted', this.name)
+    console.log('REF', this.$refs.lolref)
   },
 
   data: function() {

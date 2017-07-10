@@ -225,6 +225,7 @@ var VoltComponent = (function() {
     var scope = initializeScope(component)
     copyAttrs(el, dom.firstElementChild)
     setProps(el, component, scope, parentScope, loopScope)
+    setRefs(el, scope, parentScope, loopScope)
     initComponentData(component, scope)
     initComponentMethods(component, scope)
 
@@ -246,6 +247,7 @@ var VoltComponent = (function() {
       _component: component
     }
 
+    scope.$refs = {}
     scope.$setState = VoltState.setState
     scope.$setData = setData(scope)
     scope.$bind = VoltBind.bind.bind(scope)
@@ -270,6 +272,25 @@ var VoltComponent = (function() {
       }
 
       toEl.setAttribute(name, attr.value)
+    }
+  }
+
+  function setRef(el, handler, scope, parentScope, loopScope) {
+    var value = el.getAttribute('ref')
+    if (value) {
+      handler(el, value, scope, parentScope, loopScope)
+      el.removeAttribute('ref')
+    }
+  }
+
+  function setRefs(el, scope, parentScope, loopScope) {
+    var handler = VoltBind.getBindHandler('ref')
+    setRef(el, handler, scope, parentScope, loopScope)
+
+    var els = el.querySelectorAll('ref')
+
+    for (var i = 0, l = els.length; i < l; ++i) {
+      setRef(el, handler, scope, parentScope, loopScope)
     }
   }
 
@@ -353,6 +374,7 @@ var VoltComponent = (function() {
     }
 
     var dom = setupDom(template, scope, null)
+
     processUpdates()
     return dom
   }
