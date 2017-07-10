@@ -69,7 +69,7 @@ var VoltComponent = (function() {
         fillSlots(componentEl, slots.slots, slots.hasMany)
       }
 
-      el.parentNode.replaceChild(componentEl, el)
+      VoltDom.replace(el, componentEl)
 
       bindAttributes(componentEl, scope, parentScope, loopScope)
 
@@ -202,7 +202,7 @@ var VoltComponent = (function() {
     if (numSlots === 1) {
       var slot = emptySlots[0]
       if (!slot.hasAttribute('name') && !hasMany) {
-        slot.parentNode.replaceChild(slots, slot)
+        VoltDom.replace(slot, slots)
         return
       }
     } else if (typeof slots !== 'object') {
@@ -211,10 +211,10 @@ var VoltComponent = (function() {
     
     for (var i = 0; i < numSlots; ++i) {
       var slot = emptySlots[i]
-      var slotName = slot.getAttribute('name')
+      var name = slot.getAttribute('name')
 
-      if (slots[slotName]) {
-        slot.parentNode.replaceChild(slots[slotName], slot)
+      if (slots[name]) {
+        VoltDom.replace(slot, slots[name])
       }
     }
   }
@@ -227,6 +227,10 @@ var VoltComponent = (function() {
     setProps(el, component, scope, parentScope, loopScope)
     initComponentData(component, scope)
     initComponentMethods(component, scope)
+
+    if (component.ready) {
+      component.ready.bind(scope)()
+    }
 
     return {
       el: dom.firstElementChild,
@@ -243,6 +247,7 @@ var VoltComponent = (function() {
     }
 
     scope.$setData = setData(scope)
+    scope.$setState = VoltState.set
     scope.$bind = VoltBind.bind.bind(scope)
     scope.$bindState = VoltBind.bindState.bind(scope)
     scope.$bindData = VoltBind.bindData.bind(scope)
@@ -342,6 +347,11 @@ var VoltComponent = (function() {
     var scope = initializeScope(component)
     initComponentData(component, scope)
     initComponentMethods(component, scope)
+
+    if (component.ready) {
+      component.ready.bind(scope)()
+    }
+
     var dom = setupDom(template, scope, null)
     processUpdates()
     return dom

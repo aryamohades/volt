@@ -15,8 +15,7 @@ Volt.sync('auth', [
 ])
 
 Volt.state({
-  randomValue: Math.random(),
-  counter: 1
+  rando: Math.random()
 })
 
-Volt.sync('randomValue')
+Volt.sync('rando')

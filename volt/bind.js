@@ -53,8 +53,8 @@ var VoltBind = (function() {
     if (matchesArrayType) {
       watcher.dataFields = [bindTo]
       scope._dataWatchers[bindTo].push(watcher)
-    } else if (type === 'object' && value.bind) {
-      watcher = value.bind.apply(scope, [watcher])
+    } else if (type === 'object' && value._bind) {
+      watcher = value._bind.bind(scope)(watcher)
     } else if (type === 'function') {
       watcher.value = value()
     } else if (matchesBaseType) {
@@ -75,7 +75,7 @@ var VoltBind = (function() {
       update: updateAttribute,
       scope: scope,
       parentScope: parentScope,
-      loopScope: loopScope
+      loopScope: VoltUtil.shallowCopy(loopScope)
     }
 
     if (!inLoopScope) {
@@ -96,7 +96,7 @@ var VoltBind = (function() {
       update: updateText,
       scope: scope,
       parentScope: parentScope,
-      loopScope: loopScope
+      loopScope: VoltUtil.shallowCopy(loopScope)
     }
 
     if (!inLoopScope) {
@@ -123,7 +123,7 @@ var VoltBind = (function() {
       update: updateFor,
       scope: scope,
       parentScope: parentScope,
-      loopScope: loopScope
+      loopScope: VoltUtil.shallowCopy(loopScope)
     }
 
     if (!inLoopScope) {
@@ -155,7 +155,7 @@ var VoltBind = (function() {
       loopScope: loopScope,
       scope: scope,
       parentScope: parentScope,
-      loopScope: loopScope
+      loopScope: VoltUtil.shallowCopy(loopScope)
     }
 
     if (bindType === '@else') {
@@ -299,7 +299,7 @@ var VoltBind = (function() {
     if (dataFields && !Array.isArray(dataFields)) dataFields = [dataFields] 
 
     return {
-      bind: function(watcher) {
+      _bind: function(watcher) {
         options = options || {}
 
         watcher.fn = fn ? fn.bind(this) : null
@@ -344,6 +344,7 @@ var VoltBind = (function() {
       var field = watcher.stateFields[i]
       watcher.value = VoltState.get(field)
       VoltState.watchers[field].push(watcher)
+
       if (scope._stateWatchers[field]) {
         scope._stateWatchers[field].push(watcher)
       } else {

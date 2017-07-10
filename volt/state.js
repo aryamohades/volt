@@ -21,11 +21,11 @@ var VoltState = (function() {
     }
   }
 
-  function get(field) {
+  function getState(field) {
     return _state[field]
   }
 
-  function set(field, value) {
+  function setState(field, value) {
     _state[field] = value
 
     if (_synced[field]) {
@@ -37,7 +37,7 @@ var VoltState = (function() {
     for (var i = 0, l = stateWatchers.length; i < l; ++i) {
       var watcher = stateWatchers[i]
       watcher.value = value
-      VoltComponent.updateDom(watcher)
+      watcher.update()
     }
   }
 
@@ -101,8 +101,8 @@ var VoltState = (function() {
   return {
     watchers: _watchers,
     register: register,
-    get: get,
-    set: set,
+    get: getState,
+    set: setState,
     syncFields: syncFields,
     init: init
   }

@@ -7,11 +7,10 @@ Volt.request('loginTest', {
 // Define template
 Volt.template('app', `
 <div class="page">
-  <div @text="getGreeting"></div>
+  <div @text="rando"></div>
+  <button @click="changeRando">Change Rando</button>
   <div><span>First Condition: </span><span @text="first"></span></div>
   <div><span>Second Condition: </span><span @text="second"></span></div>
-  <button @click="toggleFirst">Toggle First Condition</button>
-  <button @click="toggleSecond">Toggle Second Condition</button>
   <div @if="first">
     <div>First: If</div>
   </div>
@@ -21,6 +20,8 @@ Volt.template('app', `
   <div @else>
     <div>Third: Else</div>
   </div>
+  <button @click="toggleFirst">Toggle First Condition</button>
+  <button @click="toggleSecond">Toggle Second Condition</button>
   <div>
     <img style="height:100px" @src="src">
     <button @click="changeImg">Change Image</button>
@@ -49,8 +50,9 @@ Volt.template('app', `
       <span>Slot Content: </span><span @text="num.message"></span>
     </example>
   </div>
-  <example>
+  <example number="50">
     <another></another>
+    <button @click="logMessage">Log Message</button>
   </example>
 </div>
 `)
@@ -60,15 +62,17 @@ Volt.component('app', {
 
   // Components that are children of this component
   components: [
-    'example'
+    'example',
+    'another'
   ],
 
   ready: function() {
-    console.log('App mounted')
+    console.log('App mounted', this.name)
   },
 
   data: function() {
     return {
+      rando: this.$bindState('rando'),
       first: true,
       second: false,
       src: 'http://res.cloudinary.com/taapesh/image/upload/v1473863792/cat.gif',
@@ -101,6 +105,9 @@ Volt.component('app', {
 
   methods: function() {
     return {
+      changeRando: function(e) {
+        this.$setState('rando', Math.random())
+      },
       toggleFirst: function(e) {
         this.$setData('first', !this.first)
       },
