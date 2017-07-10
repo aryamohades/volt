@@ -123,7 +123,7 @@ var VoltBind = (function() {
       update: updateFor,
       scope: scope,
       parentScope: parentScope,
-      loopScope: VoltUtil.shallowCopy(loopScope)
+      loopScope: loopScope
     }
 
     if (!inLoopScope) {
