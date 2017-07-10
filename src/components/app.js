@@ -50,7 +50,7 @@ Volt.template('app', `
       <span>Slot Content: </span><span @text="num.message"></span>
     </example>
   </div>
-  <example number="50">
+  <example fnFromProps="fnAsProp" number="50">
     <another></another>
     <button @click="logMessage">Log Message</button>
   </example>
@@ -105,26 +105,35 @@ Volt.component('app', {
 
   methods: function() {
     return {
+      fnAsProp: function() {
+        console.log('Ayyy lol im a function from props')
+      },
       changeRando: function(e) {
         this.$setState('rando', Math.random())
       },
+
       toggleFirst: function(e) {
         this.$setData('first', !this.first)
       },
+
       toggleSecond: function(e) {
         this.$setData('second', !this.second)
       },
+
       changeImg: function(e) {
         this.srcIndex = 1 - this.srcIndex
         var src = this.sources[this.srcIndex]
         this.$setData('src', src)
       },
+
       fnText: function() {
         return 'Hey there'
       },
+
       values: function() {
         return [10, 4, 3, 2, 1]
       },
+
       numbers: function() {
         return [
           {
@@ -144,6 +153,7 @@ Volt.component('app', {
           }
         ]
       },
+
       changeFullName: function() {
         this.$setData('name', {
           firstName: 'Alice',

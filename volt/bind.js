@@ -342,7 +342,7 @@ var VoltBind = (function() {
   function addStateWatcher(watcher, scope) {
     for (var i = 0, l = watcher.stateFields.length; i < l; ++i) {
       var field = watcher.stateFields[i]
-      watcher.value = VoltState.get(field)
+      watcher.value = VoltState.getState(field)
       VoltState.watchers[field].push(watcher)
 
       if (scope._stateWatchers[field]) {

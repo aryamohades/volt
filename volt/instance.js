@@ -28,8 +28,8 @@ var Volt = (function() {
     // State api
     state: VoltState.register,
     sync: VoltState.syncFields,
-    getState: VoltState.get,
-    setState: VoltState.set,
+    getState: VoltState.getState,
+    setState: VoltState.setState,
 
     // Route api
     route: VoltRouter.register,

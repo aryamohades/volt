@@ -246,8 +246,8 @@ var VoltComponent = (function() {
       _component: component
     }
 
+    scope.$setState = VoltState.setState
     scope.$setData = setData(scope)
-    scope.$setState = VoltState.set
     scope.$bind = VoltBind.bind.bind(scope)
     scope.$bindState = VoltBind.bindState.bind(scope)
     scope.$bindData = VoltBind.bindData.bind(scope)

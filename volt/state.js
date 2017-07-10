@@ -101,8 +101,8 @@ var VoltState = (function() {
   return {
     watchers: _watchers,
     register: register,
-    get: getState,
-    set: setState,
+    getState: getState,
+    setState: setState,
     syncFields: syncFields,
     init: init
   }
