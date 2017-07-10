@@ -7,122 +7,137 @@ var VoltBind = (function() {
   }
 
   function getBindHandler(name) {
+    var handler
+
     if (_bindHandlers[name]) {
-      return _bindHandlers[name]
+      handler = _bindHandlers[name]
+    } else if (name.startsWith('@')) {
+      name = 'v-' + name.slice(1)
+      handler = _bindHandlers[name] ? _bindHandlers[name] : bindAttribute
     }
 
-    return bindAttribute
+    return handler
   }
 
-  function bindAttribute(el, bindTo, scope, loopScope) {
+  function getValueFromScope(name, scope, parentScope, loopScope) {
     var value, inLoopScope = false
 
-    el.removeAttribute(bindTo.replace('v-', '@'))
-
     if (loopScope) {
-      value = VoltUtil.get(loopScope, bindTo)
-      if (value) inLoopScope = true
+      value = VoltUtil.get(loopScope, name)
+
+      if (value !== undefined) {
+        inLoopScope = true
+      }
     }
 
-    if (!value) {
-      value = VoltUtil.get(scope, bindTo)
+    if (value === undefined) {
+      value = VoltUtil.get(scope, name)
     }
+
+    if (value === undefined) {
+      value = VoltUtil.get(parentScope, name)
+    }
+
+    return {
+      value: value,
+      inLoopScope: inLoopScope
+    }
+  }
+
+  function convertValue(baseType, value, bindTo, watcher, scope) {
+    var type = typeof value
+
+    var matchesBaseType = !baseType || type === baseType
+    var matchesArrayType = baseType === 'array' && Array.isArray(value)
+
+    if (matchesArrayType) {
+      watcher.dataFields = [bindTo]
+      scope._dataWatchers[bindTo].push(watcher)
+    } else if (type === 'object' && value.bind) {
+      watcher = value.bind.apply(scope, [watcher])
+    } else if (type === 'function') {
+      watcher.value = value()
+    } else if (matchesBaseType) {
+      watcher.dataFields = [bindTo]
+      scope._dataWatchers[bindTo].push(watcher)
+    }
+  }
+
+  function bindAttribute(el, bindTo, scope, parentScope, loopScope) {
+    var valueObj = getValueFromScope(bindTo, scope, parentScope, loopScope)
+    var value = valueObj.value
+    var inLoopScope = valueObj.inLoopScope
 
     var watcher = {
-      dataFields: [bindTo],
       el: el,
       name: bindTo,
       value: value,
       update: updateAttribute,
-      scope: scope
+      scope: scope,
+      parentScope: parentScope,
+      loopScope: loopScope
     }
 
     if (!inLoopScope) {
-      var type = typeof value
+      convertValue('string', value, bindTo, watcher, scope)
+      // var type = typeof value
 
-      if (type === 'string') {
-        scope._dataWatchers[bindTo].push(watcher)
-      } else if (type === 'object' && value.bind) {
-        watcher = value.bind.apply(scope, [watcher])
-      } else if (type === 'function') {
-        watcher.value = value()
-      }
+      // if (type === 'string') {
+      //   watcher.dataFields = [bindTo]
+      //   scope._dataWatchers[bindTo].push(watcher)
+      // } else if (type === 'object' && value.bind) {
+      //   watcher = value.bind.apply(scope, [watcher])
+      // } else if (type === 'function') {
+      //   watcher.value = value()
+      // }
     }
 
     VoltComponent.addUpdate(watcher)
   }
 
-  function bindText(el, bindTo, scope, loopScope) {
-    var text, inLoopScope = false
-
-    if (loopScope) {
-      text = VoltUtil.get(loopScope, bindTo)
-      if (text) inLoopScope = true
-    }
-
-    if (!text) {
-      text = VoltUtil.get(scope, bindTo)
-    }
+  function bindText(el, bindTo, scope, parentScope, loopScope) {
+    var valueObj = getValueFromScope(bindTo, scope, parentScope, loopScope)
+    var value = valueObj.value
+    var inLoopScope = valueObj.inLoopScope
 
     var watcher = {
       el: el,
-      dataFields: [bindTo],
-      value: text,
+      value: value,
       update: updateText,
-      scope: scope
+      scope: scope,
+      parentScope: parentScope,
+      loopScope: loopScope
     }
 
     if (!inLoopScope) {
-      var type = typeof text
-
-      if (type === 'string') {
-        scope._dataWatchers[bindTo].push(watcher)
-      } else if (type === 'object' && text.bind) {
-        watcher = text.bind.apply(scope, [watcher])
-      } else if (type === 'function') {
-        watcher.value = text()
-      }
+      convertValue(null, value, bindTo, watcher, scope)
     }
     
     VoltComponent.addUpdate(watcher)
   }
 
-  function bindFor(el, bindTo, scope, loopScope) {
-    var arr, inLoopScope = false
-
+  function bindFor(el, bindTo, scope, parentScope, loopScope) {
     el.removeAttribute('@for')
     var parsed = parseForAttr(bindTo)
 
-    if (loopScope) {
-      arr = VoltUtil.get(loopScope, parsed.src)
-      if (arr) inLoopScope = true
-    }
-
-    if (!arr) {
-      arr = VoltUtil.get(scope, parsed.src)
-    }
+    var valueObj = getValueFromScope(parsed.src, scope, parentScope, loopScope)
+    var value = valueObj.value
+    var inLoopScope = valueObj.inLoopScope
 
     var watcher = {
-      dataFields: [parsed.src],
       var: parsed.var,
       html: el.outerHTML,
       els: [],
       anchor: el,
-      value: arr,
+      value: value,
       update: updateFor,
-      scope: scope
+      scope: scope,
+      parentScope: parentScope,
+      loopScope: VoltUtil.shallowCopy(loopScope)
     }
 
     if (!inLoopScope) {
-      var type = typeof arr
-
-      if (Array.isArray(arr) && !inLoopScope) {
-        scope._dataWatchers[parsed.src].push(watcher)
-      } else if (type === 'object' && arr.bind) {
-        watcher = arr.bind.apply(scope, [watcher])
-      } else if (type === 'function') {
-        watcher.value = arr()
-      }
+      convertValue('array', value, parsed.src, watcher, scope)
     }
 
     el.innerHTML = ''
@@ -130,13 +145,71 @@ var VoltBind = (function() {
     VoltComponent.addUpdate(watcher)
   }
 
-  function bindIf(el, bindTo, scope, loopScope) {
-    console.log('Bind if')
+  function bindIfNode(el, bindTo, bindType, chain, scope, parentScope, loopScope) {
+    el.removeAttribute(bindType)
+
+    var value, inLoopScope = false
+
+    if (bindType !== '@else') {
+      var valueObj = getValueFromScope(bindTo, scope, parentScope, loopScope)
+      value = valueObj.value
+      inLoopScope = valueObj.inLoopScope
+    }
+
+    var watcher = {
+      anchor: el,
+      chain: chain,
+      html: el.outerHTML,
+      value: value,
+      update: updateIf,
+      loopScope: loopScope,
+      scope: scope,
+      parentScope: parentScope,
+      loopScope: loopScope
+    }
+
+    if (bindType === '@else') {
+      watcher.value = true
+    } else if (!inLoopScope) {
+      convertValue('boolean', value, bindTo, watcher, scope)
+    }
+
+    chain.push(watcher)
+
+    return watcher
   }
 
-  function bindClick(el, bindTo, scope, loopScope) {
+  function bindIf(el, bindTo, scope, parentScope, loopScope) {
+    var remove = []
+    var chain = []
+    var watcher = bindIfNode(el, bindTo, '@if', chain, scope, parentScope, loopScope)
+
+    var next = el.nextElementSibling
+    var elseIfAttr = next !== null ? next.getAttribute('@else-if') : null
+
+    while (elseIfAttr !== null) {
+      remove.push(next)
+      bindIfNode(next, elseIfAttr, '@else-if', chain, scope, parentScope, loopScope)
+      next = next.nextElementSibling
+      elseIfAttr = next !== null ? next.getAttribute('@else-if') : null
+    }
+
+    if (next && next.hasAttribute('@else')) {
+      remove.push(next)
+      bindIfNode(next, null, '@else', chain, scope, parentScope, loopScope)
+    }
+
+    el.innerHTML = ''
+
+    VoltDom.removeMulti(remove)
+
+    VoltComponent.addUpdate(watcher)
+  }
+
+  function bindClick(el, bindTo, scope, parentScope, loopScope) {
     var handler = scope[bindTo].bind(scope)
     var listener = {
+      el: el,
       type: 'click',
       handler: handler
     }
@@ -166,7 +239,8 @@ var VoltBind = (function() {
     var watcher = this
     watcher.value = getUpdateValue(watcher)
 
-    var node, newAnchor, loopScope = {}
+    var node, newAnchor
+    var loopScope = {}
 
     var frag = VoltDom.fragment()
 
@@ -174,7 +248,16 @@ var VoltBind = (function() {
 
     for (var i = 0, l = arr.length; i < l; ++i) {
       loopScope[watcher.var] = arr[i]
-      node = VoltComponent.setupDom(watcher.html, watcher.scope, loopScope)
+
+      var html = watcher.html
+      var scope = watcher.scope
+      var parentScope = watcher.parentScope
+
+      for (var p in watcher.loopScope) {
+        loopScope[p] = watcher.loopScope[p]
+      }
+
+      node = VoltComponent.setupDom(html, scope, parentScope, loopScope)
       frag.appendChild(node)
 
       if (i === 0) {
@@ -185,6 +268,36 @@ var VoltBind = (function() {
     if (newAnchor) {
       VoltDom.replace(watcher.anchor, frag)
       watcher.anchor = newAnchor
+    }
+  }
+
+  function updateIf() {
+    var watcher = this
+    var chain = watcher.chain
+    var newNode
+
+    for (var i = 0, l = chain.length; i < l; ++i) {
+      var watcherNode = chain[i]
+      watcherNode.value = getUpdateValue(watcherNode)
+      
+      if (watcherNode.value === true) {
+        var html = watcherNode.html
+        var scope = watcherNode.scope
+        var parentScope = watcherNode.parentScope
+        var loopScope = watcherNode.loopScope  
+        newNode = VoltComponent.setupDom(html, scope, parentScope, loopScope)
+        break
+      }
+    }
+
+    if (newNode) {
+      VoltDom.replace(watcher.anchor, newNode)
+
+      for (var i = 0, l = chain.length; i < l; ++i) {
+        chain[i].anchor = newNode
+      }
+    } else {
+      watcher.anchor.innerHTML = ''
     }
   }
 

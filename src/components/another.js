@@ -2,6 +2,7 @@ Volt.template('another', `
 <div>
   <span @text="value"></span>
   <button @click="changeValue">Change Random Value</button>
+  <slot></slot>
 </div>
 `)
 

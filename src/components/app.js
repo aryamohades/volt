@@ -7,9 +7,24 @@ Volt.request('loginTest', {
 // Define template
 Volt.template('app', `
 <div class="page">
-  <div @if="condition">Hello</div>
-  <img style="height:100px" @src="src">
-  <button @click="changeImg">Change Image</button>
+  <div @text="getGreeting"></div>
+  <div><span>First Condition: </span><span @text="first"></span></div>
+  <div><span>Second Condition: </span><span @text="second"></span></div>
+  <button @click="toggleFirst">Toggle First Condition</button>
+  <button @click="toggleSecond">Toggle Second Condition</button>
+  <div @if="first">
+    <div>First: If</div>
+  </div>
+  <div @else-if="second">
+    <div>Second: Else If</div>
+  </div>
+  <div @else>
+    <div>Third: Else</div>
+  </div>
+  <div>
+    <img style="height:100px" @src="src">
+    <button @click="changeImg">Change Image</button>
+  </div>
   <div @text="response"></div>
   <button @click="apiTest">API Test</button>
   <span>Function text: </span>
@@ -19,22 +34,24 @@ Volt.template('app', `
     <div @text="city"></div>
     <div>Arya</div>
   </example>
+
   <example number="5" @for="post in posts">
     <div @text="post.title"></div>
     <div @text="post.content"></div>
   </example>
+
   <button @click="another">Method Test</button>
+
   <router-view></router-view>
-  <div @for="num in numbers">
-    <span @for="val in values" @text="val"></span>
-    <span>City: </span>
-    <span @text="city"></span>
-    <span @text="name"></span>
-    <span @text="num.value"></span>
-    <span @for="val in num.arr" @text="val">
-      <example number="val"></example>
-    </span>
+  <div>Nested Loop Test</div>
+  <div @for="num in numbers" style="border:1px solid red">
+    <example @for="val in num.arr" number="val">
+      <span>Slot Content: </span><span @text="num.message"></span>
+    </example>
   </div>
+  <example>
+    <another></another>
+  </example>
 </div>
 `)
 
@@ -52,7 +69,8 @@ Volt.component('app', {
 
   data: function() {
     return {
-      condition: true,
+      first: true,
+      second: false,
       src: 'http://res.cloudinary.com/taapesh/image/upload/v1473863792/cat.gif',
       sources: [
         'http://res.cloudinary.com/taapesh/image/upload/v1473863792/cat.gif',
@@ -83,6 +101,12 @@ Volt.component('app', {
 
   methods: function() {
     return {
+      toggleFirst: function(e) {
+        this.$setData('first', !this.first)
+      },
+      toggleSecond: function(e) {
+        this.$setData('second', !this.second)
+      },
       changeImg: function(e) {
         this.srcIndex = 1 - this.srcIndex
         var src = this.sources[this.srcIndex]
@@ -97,12 +121,19 @@ Volt.component('app', {
       numbers: function() {
         return [
           {
+            message: 'This is a message demonstrating nested loop scope',
             value: 1,
             arr: [10, 20, 30, 40, 50]
           },
           {
+            message: 'Hellohellohellohello',
             value: 2,
             arr: [5, 10, 15, 20, 25]
+          },
+          {
+            message: 'yayayayayayaya',
+            value: 3,
+            arr: [10, 9, 8, 7, 6]
           }
         ]
       },
@@ -145,7 +176,7 @@ Volt.component('app', {
       // bad example, don't do this, but it shows how
       // you can have reactive functions that only run
       // if the props that it depends on change
-      getGreeting: this.$bindData('firstName', function(name) {
+      getGreeting: this.$bindData('name', function(name) {
         return 'Hello ' + name + '!'
       }),
 

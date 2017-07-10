@@ -23,6 +23,16 @@ var VoltDom = (function() {
     oldNode.parentNode.replaceChild(newNode, oldNode)
   }
 
+  function removeNode(el) {
+    el.parentNode.removeChild(el)
+  }
+
+  function removeNodes(remove) {
+    for (var i = 0, l = remove.length; i < l; ++i) {
+      removeNode(remove[i])
+    }
+  }
+
   function createFragment() {
     return document.createDocumentFragment()
   }
@@ -34,6 +44,8 @@ var VoltDom = (function() {
   return {
     get: getById,
     create: create,
+    remove: removeNode,
+    removeMulti: removeNodes,
     replace: replaceNode,
     fragment: createFragment,
     setAttribute: setAttribute,

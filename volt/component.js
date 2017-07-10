@@ -39,20 +39,24 @@ var VoltComponent = (function() {
     }
   }
 
-  function setupDom(html, scope, loopScope) {
-    var stack = []
+  function setupDom(html, scope, parentScope, loopScope) {
+    var queue = new VoltUtil.Queue()
 
     var dom = VoltDom.create('div', html)
 
-    processScope(dom, scope, loopScope, stack)
+    processScope(dom, scope, parentScope, loopScope, queue)
 
-    while (stack.length > 0) {
-      var obj = stack.pop()
+    while (!queue.isEmpty()) {
+      var obj = queue.pop()
       var el = obj.el
       var component = obj.component
       var parentScope = obj.parentScope
 
-      if (bindFor(el, parentScope, loopScope)) {
+      if (bindIf(el, scope, parentScope, loopScope)) {
+        continue
+      }
+
+      if (bindFor(el, scope, parentScope, loopScope)) {
         continue
       }
 
@@ -67,68 +71,81 @@ var VoltComponent = (function() {
 
       el.parentNode.replaceChild(componentEl, el)
 
-      bindAttributes(componentEl, scope, loopScope)
+      bindAttributes(componentEl, scope, parentScope, loopScope)
 
-      processScope(componentEl, componentScope, loopScope, stack)
+      processScope(componentEl, componentScope, parentScope, loopScope, queue)
     }
 
     return dom.firstElementChild
   }
 
-  function processScope(dom, scope, loopScope, componentStack) {
-    var components = {}, component, children
-    var childComponents = scope._component.components
+  function processScope(node, scope, parentScope, loopScope, componentQueue) {
+    var components = {}
+    var childComponents = scope._component.components || []
 
     for (var i = 0, l = childComponents.length; i < l; ++i) {
-      component = get(childComponents[i])
+      var component = get(childComponents[i])
       components[component.tagName] = component
     }
 
-    var stack = []
-    children = dom.children
+    var queue = new VoltUtil.Queue()
 
-    for (var i = 0, l = children.length; i < l; ++i) {
-      stack.push(children[i])
+    for (var i = 0, l = node.children.length; i < l; ++i) {
+      queue.push(node.children[i])
     }
 
-    while (stack.length > 0) {
-      var el = stack.pop()
+    while (!queue.isEmpty()) {
+      var el = queue.pop()
       var tagName = el.tagName.toLowerCase()
 
       if (components[tagName]) {
-        componentStack.push({
+        componentQueue.push({
           el: el,
           component: components[tagName],
           parentScope: scope
         })
       } else {
-        bindAttributes(el, scope, loopScope)
+        bindAttributes(el, scope, parentScope, loopScope)
       }
 
       if (!el.hasAttribute('@for') && !el.hasAttribute('@if')) {
-        children = el.children
-        for (var i = 0, l = children.length; i < l; ++i) {
-          stack.push(children[i])
+        for (var i = 0, l = el.children.length; i < l; ++i) {
+          queue.push(el.children[i])
         }
       }
     }
   }
 
-  function bindFor(el, scope, loopScope) {
-    var value = el.getAttribute('@for')
+  function bindIf(el, scope, parentScope, loopScope) {
+    var value = el.getAttribute('@if')
 
     if (value) {
-      var handler = VoltBind.bindHandlers['v-for']
-      handler(el, value, scope, loopScope)
+      var handler = VoltBind.getBindHandler('v-if')
+      handler(el, value, scope, parentScope, loopScope)
     }
 
     return value !== null
   }
 
-  function bindAttributes(el, scope, loopScope) {
-    var attrs = el.attributes
+  function bindFor(el, scope, parentScope, loopScope) {
+    var value = el.getAttribute('@for')
+
+    if (value) {
+      var handler = VoltBind.getBindHandler('v-for')
+      handler(el, value, scope, parentScope, loopScope)
+    }
+
+    return value !== null
+  }
+
+  function bindAttributes(el, scope, parentScope, loopScope) {
+    var attrs = [].slice.call(el.attributes)
     
-    if (bindFor(el, scope, loopScope)) {
+    if (bindIf(el, scope, parentScope, loopScope)) {
+      return
+    }
+
+    if (bindFor(el, scope, parentScope, loopScope)) {
       return
     }
 
@@ -137,10 +154,11 @@ var VoltComponent = (function() {
       var name = attr.name
       var value = attr.value
 
-      if (name.startsWith('@')) {
-        name = 'v-' + name.slice(1)
-        var bindHandler = VoltBind.getBindHandler(name)
-        bindHandler(el, value, scope, loopScope)
+      var bindHandler = VoltBind.getBindHandler(name)
+
+      if (bindHandler) {
+        el.removeAttribute(name)
+        bindHandler(el, value, scope, parentScope, loopScope)
       }
     }
   }

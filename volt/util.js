@@ -102,12 +102,39 @@ var VoltUtil = (function() {
     }
   }
 
+  function Queue() {
+    var queue  = []
+    var offset = 0
+
+    this.push = function(item){
+      queue.push(item);
+    }
+
+    this.pop = function() {
+      if (queue.length == 0) return undefined
+
+      var item = queue[offset]
+
+      if (++offset * 2 >= queue.length){
+        queue = queue.slice(offset)
+        offset = 0
+      }
+
+      return item
+    }
+
+    this.isEmpty = function() {
+      return queue.length === 0
+    }
+  }
+
   return {
     get: get,
     set: set,
     flatten: flatten,
     unflatten: unflatten,
     push: push,
-    shallowCopy: shallowCopy
+    shallowCopy: shallowCopy,
+    Queue: Queue
   }
 })();

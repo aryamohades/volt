@@ -54,12 +54,6 @@ var VoltProps = (function() {
           throw propTypeError('object', valueType)
         }
         break
-      case PropTypes.Function:
-        if (valueType !== 'function') {
-          throw propTypeError('function', valueType)
-        }
-        ret = value
-        break
       case PropTypes.Boolean:
         if (valueType === 'boolean') {
           ret = value
@@ -72,6 +66,12 @@ var VoltProps = (function() {
         } else {
           throw propTypeError('boolean', valueType)
         }
+        break
+      case PropTypes.Function:
+        if (valueType !== 'function') {
+          throw propTypeError('function', valueType)
+        }
+        ret = value
         break
       default:
         ret = value
