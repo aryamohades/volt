@@ -1,0 +1,1 @@
+Volt.set('storageKey', 'example')

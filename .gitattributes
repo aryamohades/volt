@@ -1,0 +1,22 @@
+## TEXT
+*.txt    text
+*.css    text
+*.html   text
+*.js     text
+*.json   text
+
+## CONFIG
+*.conf         text
+*.config       text
+.editorconfig  text
+.gitattributes text
+.gitconfig     text
+.gitignore     text
+
+## GRAPHICS
+*.gif  binary
+*.ico  binary
+*.jpg  binary
+*.jpeg binary
+*.png  binary
+*.svg  text
