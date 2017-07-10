@@ -80,16 +80,6 @@ var VoltBind = (function() {
 
     if (!inLoopScope) {
       convertValue('string', value, bindTo, watcher, scope)
-      // var type = typeof value
-
-      // if (type === 'string') {
-      //   watcher.dataFields = [bindTo]
-      //   scope._dataWatchers[bindTo].push(watcher)
-      // } else if (type === 'object' && value.bind) {
-      //   watcher = value.bind.apply(scope, [watcher])
-      // } else if (type === 'function') {
-      //   watcher.value = value()
-      // }
     }
 
     VoltComponent.addUpdate(watcher)
