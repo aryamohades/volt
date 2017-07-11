@@ -317,8 +317,11 @@ var VoltBind = (function() {
       for (var i = 0, l = chain.length; i < l; ++i) {
         chain[i].anchor = newNode
       }
+
+      VoltDom.show(chain[0].anchor)
     } else {
-      watcher.anchor.innerHTML = ''
+      VoltDom.hide(watcher.anchor)
+      VoltDom.clear(watcher.anchor)
     }
   }
 
