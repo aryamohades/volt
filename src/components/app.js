@@ -13,7 +13,7 @@ Volt.request('getUser', {
 // Define template
 Volt.template('app', `
 <div class="page">
-  <div @text="userInfo.first_name"></div>
+  <div @text="fullName"></div>
   <button @click="getUser">Get User API</button>
   <div @text="rando"></div>
   <button @click="changeRando">Change Rando</button>
@@ -247,6 +247,14 @@ Volt.component('app', {
           this.$setData('userInfo', res.data.data)
         }
       }),
+
+      fullName: this.$bindData(['userInfo.first_name', 'userInfo.last_name'],
+        function(firstName, lastName) {
+          if (firstName && lastName) {
+            return firstName + ' ' + lastName
+          }
+        }
+      ),
 
       getUsers: this.$request('getUsers', {
           success: function(res) {

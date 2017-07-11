@@ -372,7 +372,11 @@ var VoltBind = (function() {
   function addDataWatcher(watcher, scope) {
     for (var i = 0, l = watcher.dataFields.length; i < l; ++i) {
       var field = watcher.dataFields[i]
-      scope._dataWatchers[field].push(watcher)
+      if (scope._dataWatchers[field]) {
+        scope._dataWatchers[field].push(watcher)
+      } else {
+        scope._dataWatchers[field] = [watcher]
+      }
     }
   }
 
