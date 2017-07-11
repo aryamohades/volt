@@ -34,8 +34,13 @@ Volt.template('app', `
     <img style="height:100px" @src="getSrc">
     <button @click="changeImgSrc">Change Image</button>
   </div>
-  <div @text="users"></div>
+  <div @for="user in users" style="border: 1px solid green">
+    <div @text="user.id"></div>
+    <div @text="user.name"></div>
+    <div @text="user.pantone_value"></div>
+  </div>
   <button @click="getUsers">Get Users API</button>
+  <button @click="removeUsers">Remove Users</button>
   <div @text="city"></div>
   <example id="blah" name="blah" @click="logMessage" number="100">
     <div @text="city"></div>
@@ -43,12 +48,6 @@ Volt.template('app', `
   </example>
 
   <router-view></router-view>
-  <div>Nested Loop Test</div>
-  <div @for="num in numbers" style="border:1px solid red">
-    <example @for="val in num.arr" number="val">
-      <span>Slot Content: </span><span @text="num.message"></span>
-    </example>
-  </div>
   <example @ref="lolref" fnFromProps="fnAsProp" number="50">
     <another></another>
     <button @click="logMessage">Log Message</button>
@@ -73,6 +72,7 @@ Volt.component('app', {
   data: function() {
     return {
       userInfo: null,
+      users: null,
       rando: this.$bindState('rando'),
       first: true,
       second: false,
@@ -82,7 +82,6 @@ Volt.component('app', {
         'https://s-media-cache-ak0.pinimg.com/originals/ac/5d/fd/ac5dfde5520e6b7ad52711fe31817f22.jpg'
       ],
       srcIndex: 0,
-      users: null,
       name: {
         firstName: 'Arya',
         lastName: 'Mohades'
@@ -93,6 +92,10 @@ Volt.component('app', {
 
   methods: function() {
     return {
+      changeImgSrc: function(e) {
+        this.$setData('srcIndex', 1 - this.srcIndex)
+      },
+
       getSrc: this.$bindData('srcIndex', function(idx) {
         return this.sources[idx]
       }),
@@ -111,10 +114,6 @@ Volt.component('app', {
 
       toggleSecond: function(e) {
         this.$setData('second', !this.second)
-      },
-
-      changeImgSrc: function(e) {
-        this.$setData('srcIndex', 1 - this.srcIndex)
       },
 
       numbers: function() {
@@ -149,15 +148,6 @@ Volt.component('app', {
         return 'Hello ' + name + '!'
       }),
 
-      getUser: this.$request('getUser', {
-        params: {
-          id: 1
-        },
-        success: function(res) {
-          this.$setData('userInfo', res.data.data)
-        }
-      }),
-
       fullName: this.$bindData(['userInfo.first_name', 'userInfo.last_name'],
         function(firstName, lastName) {
           if (firstName && lastName) {
@@ -166,16 +156,32 @@ Volt.component('app', {
         }
       ),
 
+      getUser: this.$request('getUser', {
+        params: {
+          id: 1
+        },
+        query: {
+          q: 'hello'
+        },
+        success: function(res) {
+          this.$setData('userInfo', res.data.data)
+        }
+      }),
+
       getUsers: this.$request('getUsers', {
           success: function(res) {
             console.log('Success', res)
-            this.$setData('users', JSON.stringify(res.data.data[0]))
+            this.$setData('users', res.data.data)
           },
           error: function(err) {
             console.log('Error', err)
           }
         }
-      )
+      ),
+
+      removeUsers: function(e) {
+        this.$setData('users', null)
+      }
     }
   }
 })

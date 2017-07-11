@@ -41,9 +41,24 @@ var VoltDom = (function() {
     el.setAttribute(name, value)
   }
 
+  function hide(el) {
+    el.style.display = 'none'
+  }
+
+  function show(el) {
+    el.style.display = ''
+  }
+
+  function clear(el) {
+    el.innerHTML = ''
+  }
+
   return {
     get: getById,
     create: create,
+    hide: hide,
+    show: show,
+    clear: clear,
     remove: removeNode,
     removeMulti: removeNodes,
     replace: replaceNode,

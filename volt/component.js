@@ -35,6 +35,8 @@ var VoltComponent = (function() {
           watcher.update()
         }
       }
+      
+      processUpdates()
     }
   }
 

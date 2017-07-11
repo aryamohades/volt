@@ -63,13 +63,13 @@ var VoltRouter = (function() {
     return queryData
   }
 
-  function buildQueryString(queryObj) {
-    if (!queryObj) return null
+  function buildQueryString(query) {
+    if (!query) return null
 
-    var queryString = ''
+    var queryString = '?'
 
-    for (var p in queryObj) {
-      queryString += p + '=' + queryObj[p] + '&'
+    for (var key in query) {
+      queryString += key + '=' + query[key] + '&'
     }
 
     queryString = queryString.slice(0, -1)
@@ -190,7 +190,7 @@ var VoltRouter = (function() {
         var queryString = buildQueryString(options.query)
 
         if (queryString) {
-          path += '?' + queryString
+          path += queryString
         }
 
         if (options.hash) {

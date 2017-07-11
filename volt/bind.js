@@ -245,16 +245,24 @@ var VoltBind = (function() {
     watcher.value = getUpdateValue(watcher)
     var arr = watcher.value
 
+    for (var i = 1, l = watcher.els.length; i < l; ++i) {
+      VoltDom.remove(watcher.els[i])
+    }
+
+    watcher.els = []
+
     if (!Array.isArray(arr)) {
+      VoltDom.hide(watcher.anchor)
+      VoltDom.clear(watcher.anchor)
       return
     }
 
     var node, newAnchor
-    var loopScope = {}
 
     var frag = VoltDom.fragment()
 
     for (var i = 0, l = arr.length; i < l; ++i) {
+      var loopScope = {}
       loopScope[watcher.var] = arr[i]
 
       var html = watcher.html
@@ -266,6 +274,7 @@ var VoltBind = (function() {
       }
 
       node = VoltComponent.setupDom(html, scope, parentScope, loopScope)
+      watcher.els.push(node)
       frag.appendChild(node)
 
       if (i === 0) {
@@ -276,6 +285,10 @@ var VoltBind = (function() {
     if (newAnchor) {
       VoltDom.replace(watcher.anchor, frag)
       watcher.anchor = newAnchor
+      VoltDom.show(watcher.anchor)
+    } else {
+      VoltDom.hide(watcher.anchor)
+      VoltDom.clear(watcher.anchor)
     }
   }
 

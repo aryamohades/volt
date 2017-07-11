@@ -72,13 +72,15 @@ var VoltRequest = (function() {
     }
 
     var request = new XMLHttpRequest()
-    var endpoint = _api.base + options.endpoint
+    var requestUrl = _api.base + options.endpoint
 
-    endpoint = endpoint.replace(/:([^\/]+)/g, function(match, token) {
+    requestUrl = requestUrl.replace(/:([^\/]+)/g, function(match, token) {
       return options.params[token]
     })
 
-    request.open(options.method, endpoint, true)
+    requestUrl += buildQueryString(options.query)
+
+    request.open(options.method, requestUrl, true)
 
     if (options.method === 'post') {
       request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
@@ -97,7 +99,6 @@ var VoltRequest = (function() {
     }
 
     if (!options.headers) options.headers = {}
-    if (!options.query) options.query = {}
     if (!options.params) options.params = {}
 
     return function() {
@@ -111,6 +112,19 @@ var VoltRequest = (function() {
 
   function beforeRequest(hook) {
     _beforeEachHook = hook
+  }
+
+  function buildQueryString(query) {
+    if (!query) return
+
+    var queryString = '?'
+
+    for (var key in query) {
+      queryString += key + '=' + query[key] + '&'
+    }
+
+    queryString = queryString.slice(0, -1)
+    return queryString
   }
 
   return {
