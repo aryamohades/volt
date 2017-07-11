@@ -48,7 +48,7 @@ Volt.template('app', `
   </example>
 
   <router-view></router-view>
-  <example @ref="lolref" fnFromProps="fnAsProp" number="50">
+  <example ref="lolref" fnFromProps="fnAsProp" number="50">
     <another></another>
     <button @click="logMessage">Log Message</button>
   </example>

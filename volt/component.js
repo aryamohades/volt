@@ -301,12 +301,15 @@ var VoltComponent = (function() {
 
   function setRefs(el, scope, parentScope, loopScope) {
     var handler = VoltBind.getBindHandler('ref')
-    setRef(el, handler, scope, parentScope, loopScope)
 
-    var els = el.querySelectorAll('ref')
+    if (el.hasAttribute('ref')) {
+      setRef(el, handler, scope, parentScope, loopScope)
+    }
+    
+    var els = el.querySelectorAll('[ref]')
 
     for (var i = 0, l = els.length; i < l; ++i) {
-      setRef(el, handler, scope, parentScope, loopScope)
+      setRef(els[i], handler, scope, parentScope, loopScope)
     }
   }
 

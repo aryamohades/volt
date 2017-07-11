@@ -89,7 +89,7 @@ var VoltBind = (function() {
   function bindRef(el, bindTo, scope, parentScope, loopScope) {
     var value = getValueFromScope(bindTo, scope, parentScope, loopScope).value
 
-    if (value === null) {
+    if (value === undefined || value === null) {
       scope.$refs[bindTo] = el
     } else {
       if (typeof value === 'function') {
