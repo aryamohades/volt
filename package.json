@@ -4,8 +4,8 @@
   "scripts": {
     "build": "node ./build/build.js",
     "clean": "rm -rf dist && rm -rf node_modules && npm cache verify && npm install",
-    "dev": "nodemon ./dev/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node ./dev/server.js & nodemon --watch src --watch volt ./build/build.js"
   },
   "author": "Arya Mohades",
   "devDependencies": {

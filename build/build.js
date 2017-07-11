@@ -12,6 +12,10 @@ const config = require('./build.config')
 
 const buildDir = config.path
 
+if (!io.exists(buildDir)) {
+  io.createDir(buildDir)
+}
+
 let template = config.template
 
 let builder = new HtmlBuilder()
@@ -151,11 +155,9 @@ io.walkSync(path.join(__dirname, [srcDir, 'components'].join('/'))).forEach(file
 
 // Compile modules
 
-const moduleDirs = dirs.map(dir => {
+dirs.map(dir => {
   return path.join(dir, '/modules')
-})
-
-moduleDirs.forEach(dir => {
+}).forEach(dir => {
   if (io.exists(dir)) {
     io.walkSync(dir).forEach(file => {
       srcJs += io.readFile(file) + '\n'
@@ -166,24 +168,14 @@ moduleDirs.forEach(dir => {
 // Add main entry file
 srcJs += io.readFile(path.join(__dirname, [srcDir, 'main.js'].join('/'))) + '\n'
 
+let js = coreJs + srcJs
 
 // Transpile js using babel
-
-const babelConfig = {
-  "presets": [
-    [
-      "env", {
-        "targets": {
-          "browsers": ["last 2 versions"]
-        }
-      }
-    ]
-  ]
+if (config.babelConfig) {
+  js = babel.transform(js, config.babelConfig).code
 }
 
-let js = coreJs + srcJs
-js = babel.transform(js, babelConfig).code
-
+// Minify js
 if (config.minifyJs.enabled) {
   js = UglifyJS.minify(js).code
 }

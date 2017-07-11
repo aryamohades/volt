@@ -38,6 +38,17 @@ let config = {
     "options": {
 
     }
+  },
+  babelConfig: {
+    "presets": [
+      [
+        "env", {
+          "targets": {
+            "browsers": ["last 2 versions"]
+          }
+        }
+      ]
+    ]
   }
 }
 
