@@ -21,6 +21,11 @@ var VoltComponent = (function() {
       for (var field in data) {
         var dataValue = data[field]
         var watchers = scope._dataWatchers[field]
+
+        if (!watchers) {
+          continue
+        }
+        
         VoltUtil.set(scope, field, dataValue)
 
         for (var i = 0, l = watchers.length; i < l; ++i) {

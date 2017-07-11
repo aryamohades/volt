@@ -10,7 +10,7 @@ var VoltDom = (function() {
   }
 
   function renderText(el, text) {
-    text = typeof text !== 'undefined' ? String(text) : ''
+    text = text !== undefined && text !== null ? String(text) : ''
 
     if (el.firstChild) {
       el.firstChild.nodeValue = text

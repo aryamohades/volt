@@ -131,7 +131,7 @@ var VoltRouter = (function() {
           hash: data.hash
         }
 
-        var fromRoute = VoltUtil.shallowCopy(_router)
+        var fromRoute = VoltUtil.clone(_router)
 
         function resolveNext() {
           for (var p in toRoute) {

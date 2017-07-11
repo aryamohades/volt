@@ -8,6 +8,6 @@ Volt.api({
 Volt.beforeRequest(req => {
   // Can add a universal header or anything here
   if (req.requiresAuth) {
-    req.headers['Authorization'] = 'JWT ' + Volt.getState('auth.token')
+    req.headers.Authorization = 'JWT ' + Volt.getState('auth.token')
   }
 })

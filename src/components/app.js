@@ -1,5 +1,11 @@
-Volt.request('loginTest', {
+Volt.request('getUsers', {
   endpoint: '/users',
+  method: 'GET',
+  requiresAuth: true
+})
+
+Volt.request('getUser', {
+  endpoint: '/users/:id',
   method: 'GET',
   requiresAuth: true
 })
@@ -7,6 +13,8 @@ Volt.request('loginTest', {
 // Define template
 Volt.template('app', `
 <div class="page">
+  <div @text="userInfo.first_name"></div>
+  <button @click="getUser">Get User API</button>
   <div @text="rando"></div>
   <button @click="changeRando">Change Rando</button>
   <div><span>First Condition: </span><span @text="first"></span></div>
@@ -26,8 +34,8 @@ Volt.template('app', `
     <img style="height:100px" @src="src">
     <button @click="changeImg">Change Image</button>
   </div>
-  <div @text="response"></div>
-  <button @click="apiTest">API Test</button>
+  <div @text="users"></div>
+  <button @click="getUsers">Get Users API</button>
   <span>Function text: </span>
   <span @text="fnText"></span>
   <div @text="city"></div>
@@ -73,6 +81,7 @@ Volt.component('app', {
 
   data: function() {
     return {
+      userInfo: null,
       rando: this.$bindState('rando'),
       first: true,
       second: false,
@@ -83,8 +92,11 @@ Volt.component('app', {
       ],
       srcIndex: 0,
       loadingText: '',
-      response: '',
-      name: 'Arya',
+      users: '',
+      name: {
+        firstName: 'Arya',
+        lastName: 'Mohades'
+      },
       posts: [
         {
           title: 'Post title',
@@ -227,24 +239,22 @@ Volt.component('app', {
         this.$setData('firstName', 'Bob')
       },
 
-      apiTest: this.$request('loginTest', {
-          before: function() {
-            this.$setData('loadingText', 'loading...')
-          },
-          after: function() {
-            console.log('After Request')
-            this.$setData('loadingText', '')
-          },
+      getUser: this.$request('getUser', {
+        params: {
+          id: 1
+        },
+        success: function(res) {
+          this.$setData('userInfo', res.data.data)
+        }
+      }),
+
+      getUsers: this.$request('getUsers', {
           success: function(res) {
             console.log('Success', res)
-            this.$setData('response', JSON.stringify(res.data.data[0]))
+            this.$setData('users', JSON.stringify(res.data.data[0]))
           },
           error: function(err) {
             console.log('Error', err)
-          },
-          data: {
-            email: this.email,
-            password: this.password
           }
         }
       )

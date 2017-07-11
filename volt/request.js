@@ -54,7 +54,9 @@ var VoltRequest = (function() {
 
   function setRequestHeaders(request, options) {
     for (var p in options.headers) {
-      request.setRequestHeader(p, options.headers[p])
+      if (options.headers[p]){
+        request.setRequestHeader(p, options.headers[p])
+      }
     }
   }
 
@@ -71,6 +73,10 @@ var VoltRequest = (function() {
 
     var request = new XMLHttpRequest()
     var endpoint = _api.base + options.endpoint
+
+    endpoint = endpoint.replace(/:([^\/]+)/g, function(match, token) {
+      return options.params[token]
+    })
 
     request.open(options.method, endpoint, true)
 

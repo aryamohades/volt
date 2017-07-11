@@ -48,19 +48,17 @@ var VoltBind = (function() {
   function convertValue(baseType, value, bindTo, watcher, scope) {
     var type = typeof value
 
-    var matchesBaseType = !baseType || type === baseType
-    var matchesArrayType = baseType === 'array' && Array.isArray(value)
-
-    if (matchesArrayType) {
-      watcher.dataFields = [bindTo]
-      scope._dataWatchers[bindTo].push(watcher)
-    } else if (type === 'object' && value._bind) {
+    if (value !== null && type === 'object' && value._bind) {
       watcher = value._bind.bind(scope)(watcher)
     } else if (type === 'function') {
       watcher.value = value()
-    } else if (matchesBaseType) {
+    } else {
       watcher.dataFields = [bindTo]
-      scope._dataWatchers[bindTo].push(watcher)
+      if (scope._dataWatchers[bindTo]) {
+        scope._dataWatchers[bindTo].push(watcher)
+      } else {
+        scope._dataWatchers[bindTo] = [watcher]
+      }
     }
   }
 
@@ -76,7 +74,7 @@ var VoltBind = (function() {
       update: updateAttribute,
       scope: scope,
       parentScope: parentScope,
-      loopScope: VoltUtil.shallowCopy(loopScope)
+      loopScope: VoltUtil.clone(loopScope)
     }
 
     if (!inLoopScope) {
@@ -111,7 +109,7 @@ var VoltBind = (function() {
       update: updateText,
       scope: scope,
       parentScope: parentScope,
-      loopScope: VoltUtil.shallowCopy(loopScope)
+      loopScope: VoltUtil.clone(loopScope)
     }
 
     if (!inLoopScope) {
@@ -138,7 +136,7 @@ var VoltBind = (function() {
       update: updateFor,
       scope: scope,
       parentScope: parentScope,
-      loopScope: VoltUtil.shallowCopy(loopScope)
+      loopScope: VoltUtil.clone(loopScope)
     }
 
     if (!inLoopScope) {
@@ -170,7 +168,7 @@ var VoltBind = (function() {
       loopScope: loopScope,
       scope: scope,
       parentScope: parentScope,
-      loopScope: VoltUtil.shallowCopy(loopScope)
+      loopScope: VoltUtil.clone(loopScope)
     }
 
     if (bindType === '@else') {
@@ -243,13 +241,16 @@ var VoltBind = (function() {
   function updateFor() {
     var watcher = this
     watcher.value = getUpdateValue(watcher)
+    var arr = watcher.value
+
+    if (!Array.isArray(arr)) {
+      return
+    }
 
     var node, newAnchor
     var loopScope = {}
 
     var frag = VoltDom.fragment()
-
-    var arr = watcher.value
 
     for (var i = 0, l = arr.length; i < l; ++i) {
       loopScope[watcher.var] = arr[i]

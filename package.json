@@ -1,13 +1,14 @@
 {
   "name": "volt",
+  "author": "Arya Mohades",
   "version": "1.0.0",
   "scripts": {
     "build": "node ./build/build.js",
     "clean": "rm -rf dist && rm -rf node_modules && npm cache verify && npm install",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node ./dev/server.js & nodemon --watch src --watch volt ./build/build.js"
+    "start": "node ./dev/server.js",
+    "dev": "node ./dev/server.js & nodemon --watch src --watch volt ./build/build.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Arya Mohades",
   "devDependencies": {
     "autoprefixer": "^7.1.1",
     "babel-core": "^6.25.0",

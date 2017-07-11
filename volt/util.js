@@ -1,6 +1,8 @@
 var VoltUtil = (function() {
 
   function set(obj, field, value) {
+    if (!obj || typeof obj !== 'object') return
+
     var parts = field.split('.')
     var l = parts.length
 
@@ -11,7 +13,12 @@ var VoltUtil = (function() {
 
       for (i = 0; i < l - 1; ++i) {
         var part = parts[i]
-        cur = obj[part]
+        if (obj[part]) {
+          cur = obj[part]
+        } else {
+          cur = {}
+          obj[part] = cur
+        }
       }
 
       cur[parts[i]] = value
@@ -19,7 +26,7 @@ var VoltUtil = (function() {
   }
 
   function get(obj, field) {
-    if (!obj) return
+    if (!obj || typeof obj !== 'object') return
 
     var parts = field.split('.')
     var l = parts.length
@@ -31,13 +38,17 @@ var VoltUtil = (function() {
 
       for (i = 0; i < l - 1; ++i) {
         cur = obj[parts[i]]
+
+        if (cur === null) {
+          return
+        }
       }
 
-      return cur[parts[i]] 
+      return cur[parts[i]]
     }
   }
 
-  function shallowCopy(obj) {
+  function clone(obj) {
     var res = {}
     for (var p in obj) {
       res[p] = obj[p]
@@ -134,7 +145,7 @@ var VoltUtil = (function() {
     flatten: flatten,
     unflatten: unflatten,
     push: push,
-    shallowCopy: shallowCopy,
+    clone: clone,
     Queue: Queue
   }
 })();
