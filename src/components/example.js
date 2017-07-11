@@ -25,10 +25,6 @@ Volt.component('example', {
     }
   },
 
-  ready: function() {
-    // this.$props.fnFromProps()
-  },
-
   data: function() {
     return {
       number: this.$props.number,

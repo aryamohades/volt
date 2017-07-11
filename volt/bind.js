@@ -62,14 +62,16 @@ var VoltBind = (function() {
     }
   }
 
-  function bindAttribute(el, bindTo, scope, parentScope, loopScope) {
+  function bindAttribute(el, bindTo, scope, parentScope, loopScope, attr) {
     var valueObj = getValueFromScope(bindTo, scope, parentScope, loopScope)
     var value = valueObj.value
     var inLoopScope = valueObj.inLoopScope
 
+    attr = attr.replace('@', '')
+
     var watcher = {
       el: el,
-      name: bindTo,
+      attr: attr,
       value: value,
       update: updateAttribute,
       scope: scope,
@@ -226,10 +228,10 @@ var VoltBind = (function() {
     watcher.value = getUpdateValue(watcher)
 
     var el = watcher.el
-    var name = watcher.name
+    var attr = watcher.attr
     var value = watcher.value
 
-    VoltDom.setAttribute(el, name, value)
+    VoltDom.setAttribute(el, attr, value)
   }
 
   function updateText() {

@@ -31,25 +31,16 @@ Volt.template('app', `
   <button @click="toggleFirst">Toggle First Condition</button>
   <button @click="toggleSecond">Toggle Second Condition</button>
   <div>
-    <img style="height:100px" @src="src">
-    <button @click="changeImg">Change Image</button>
+    <img style="height:100px" @src="getSrc">
+    <button @click="changeImgSrc">Change Image</button>
   </div>
   <div @text="users"></div>
   <button @click="getUsers">Get Users API</button>
-  <span>Function text: </span>
-  <span @text="fnText"></span>
   <div @text="city"></div>
   <example id="blah" name="blah" @click="logMessage" number="100">
     <div @text="city"></div>
     <div>Arya</div>
   </example>
-
-  <example number="5" @for="post in posts">
-    <div @text="post.title"></div>
-    <div @text="post.content"></div>
-  </example>
-
-  <button @click="another">Method Test</button>
 
   <router-view></router-view>
   <div>Nested Loop Test</div>
@@ -75,7 +66,7 @@ Volt.component('app', {
   ],
 
   ready: function() {
-    console.log('App mounted', this.name)
+    console.log('App mounted')
     console.log('REF', this.$refs.lolref)
   },
 
@@ -91,36 +82,25 @@ Volt.component('app', {
         'https://s-media-cache-ak0.pinimg.com/originals/ac/5d/fd/ac5dfde5520e6b7ad52711fe31817f22.jpg'
       ],
       srcIndex: 0,
-      loadingText: '',
-      users: '',
+      users: null,
       name: {
         firstName: 'Arya',
         lastName: 'Mohades'
       },
-      posts: [
-        {
-          title: 'Post title',
-          content: 'Post content'
-        },
-        {
-          title: 'Another post here',
-          content: 'Even more content'
-        }
-      ],
-      message: 'Hello there',
       city: this.$bindState('auth.user.location'),
-      user: {
-        location: this.$bindState('auth.user.location'),
-        email: 'test@test.com'
-      }
     }
   },
 
   methods: function() {
     return {
+      getSrc: this.$bindData('srcIndex', function(idx) {
+        return this.sources[idx]
+      }),
+
       fnAsProp: function() {
         console.log('Ayyy lol im a function from props')
       },
+
       changeRando: function(e) {
         this.$setState('rando', Math.random())
       },
@@ -133,18 +113,8 @@ Volt.component('app', {
         this.$setData('second', !this.second)
       },
 
-      changeImg: function(e) {
-        this.srcIndex = 1 - this.srcIndex
-        var src = this.sources[this.srcIndex]
-        this.$setData('src', src)
-      },
-
-      fnText: function() {
-        return 'Hey there'
-      },
-
-      values: function() {
-        return [10, 4, 3, 2, 1]
+      changeImgSrc: function(e) {
+        this.$setData('srcIndex', 1 - this.srcIndex)
       },
 
       numbers: function() {
@@ -167,77 +137,17 @@ Volt.component('app', {
         ]
       },
 
-      changeFullName: function() {
-        this.$setData('name', {
-          firstName: 'Alice',
-          lastName: 'Jane'
-        })
-      },
-
-      changeState: function() {
-        Volt.setState('auth.user.location', 'California')
-      },
-
       changeRandomValue: function() {
         Volt.setState('randomValue', Math.random())
       },
 
       logMessage: function(e) {
-        this.$action('logMessage', this.message)
+        this.$action('logMessage', 'Hello ' + this.name.firstName)
       },
 
-      another: function() {
-        console.log('MESSAGE:', this.message)
-        this.anotherOne()
-      },
-
-      anotherOne: function() {
-        console.log('Another component method!!!!')
-      },
-
-      // If an element depends on this
-      // it will not change if first name changes
-      // because bindData was not used
-      getStaticGreeting: function() {
-        return 'Hello ' + this.firstName + '!'
-      },
-
-      // Example of bind data with a single field
-      // bad example, don't do this, but it shows how
-      // you can have reactive functions that only run
-      // if the props that it depends on change
       getGreeting: this.$bindData('name', function(name) {
         return 'Hello ' + name + '!'
       }),
-
-      // Example of bind data with multiple properties
-      getFullName: this.$bindData(['firstName','lastName'],
-        function(firstName, lastName) {
-          return firstName + ' ' + lastName
-        }
-      ),
-
-      // // Bind state with function example
-      bindStateFnExample: this.$bindState('randomValue', function(value) {
-        return 'Number: ' + value
-      }),
-
-      // Example of binding state and data in a single function
-      // use the generic this.bind method and pass in an object with
-      // data and state fields, as well as the function
-      stateAndData: this.$bind(
-        {
-          state: 'counter',
-          data: ['firstName', 'user.email']
-        },
-        function(counter, firstName, email) {
-          return counter + firstName + email
-        }
-      ),
-
-      changeName: function() {
-        this.$setData('firstName', 'Bob')
-      },
 
       getUser: this.$request('getUser', {
         params: {

@@ -1,6 +1,7 @@
 var VoltComponent = (function() {
   var _components = {}
   var _updateQueue = []
+  var _readyQueue = []
 
   function register(name, component) {
     component._name = name
@@ -42,6 +43,17 @@ var VoltComponent = (function() {
       var watcher = _updateQueue.pop()
       watcher.update()
     }
+  }
+
+  function processReadyQueue() {
+    for (var i = 0, l = _readyQueue.length; i < l; ++i) {
+      var scope = _readyQueue[i]
+      if (scope._component.ready) {
+        scope._component.ready.bind(scope)()
+      }
+    }
+
+    _readyQueue = []
   }
 
   function setupDom(html, scope, parentScope, loopScope) {
@@ -163,7 +175,7 @@ var VoltComponent = (function() {
 
       if (bindHandler) {
         el.removeAttribute(name)
-        bindHandler(el, value, scope, parentScope, loopScope)
+        bindHandler(el, value, scope, parentScope, loopScope, name)
       }
     }
   }
@@ -228,15 +240,12 @@ var VoltComponent = (function() {
     var template = VoltTemplate.get(component.render)
     var dom = VoltDom.create('div', template)
     var scope = initializeScope(component)
+    _readyQueue.push(scope)
     copyAttrs(el, dom.firstElementChild)
     setProps(el, component, scope, parentScope, loopScope)
     setRefs(el, scope, parentScope, loopScope)
     initComponentData(component, scope)
     initComponentMethods(component, scope)
-
-    if (component.ready) {
-      component.ready.bind(scope)()
-    }
 
     return {
       el: dom.firstElementChild,
@@ -371,16 +380,14 @@ var VoltComponent = (function() {
     var component = get(name)
     var template = VoltTemplate.get(component.render)
     var scope = initializeScope(component)
+    _readyQueue.push(scope)
     initComponentData(component, scope)
     initComponentMethods(component, scope)
-
-    if (component.ready) {
-      component.ready.bind(scope)()
-    }
 
     var dom = setupDom(template, scope, null)
 
     processUpdates()
+    processReadyQueue()
     return dom
   }
 
