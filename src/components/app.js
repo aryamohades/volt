@@ -19,22 +19,14 @@ Volt.template('app', `
   <button @click="changeRando">Change Rando</button>
   <div><span>First Condition: </span><span @text="first"></span></div>
   <div><span>Second Condition: </span><span @text="second"></span></div>
-  <div @if="first">
-    <div>First: If</div>
-  </div>
-  <div @else-if="second">
-    <div>Second: Else If</div>
-  </div>
-  <div @else>
-    <div>Third: Else</div>
-  </div>
+
   <button @click="toggleFirst">Toggle First Condition</button>
   <button @click="toggleSecond">Toggle Second Condition</button>
   <div>
     <img style="height:100px" @src="getSrc">
     <button @click="changeImgSrc">Change Image</button>
   </div>
-  <div @for="user in users" style="border: 1px solid green">
+  <div @if="first" @for="user in users" style="border: 1px solid green">
     <div @text="user.id"></div>
     <div @text="user.name"></div>
     <div @text="user.pantone_value"></div>
@@ -42,7 +34,7 @@ Volt.template('app', `
   <button @click="getUsers">Get Users API</button>
   <button @click="removeUsers">Remove Users</button>
   <div @text="city"></div>
-  <example id="blah" name="blah" @click="logMessage" number="100">
+  <example id="blah" name="blah" @click="logMessage">
     <div @text="city"></div>
     <div>Arya</div>
   </example>

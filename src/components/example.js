@@ -9,9 +9,6 @@ Volt.component('example', {
   render: 'example',
   tagName: 'example',
 
-  components: [
-  ],
-
   props: {
     number: {
       type: Volt.PropTypes.Number,
@@ -20,7 +17,7 @@ Volt.component('example', {
     fnFromProps: {
       type: Volt.PropTypes.Function,
       default: function() {
-        console.log('Im the default props function')
+        console.log('default props function')
       }
     }
   },
@@ -28,16 +25,6 @@ Volt.component('example', {
   data: function() {
     return {
       number: this.$props.number,
-      comments: [
-        {
-          user: 'Arya',
-          message: 'Nice'
-        },
-        {
-          user: 'Bob',
-          message: 'Lol noob'
-        }
-      ]
     }
   },
 

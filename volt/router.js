@@ -54,9 +54,9 @@ var VoltRouter = (function() {
       var numParts = parts.length
 
       if (numParts === 1) {
-        VoltUtil.push(parts[0], '', queryData)
+        VoltUtil.pushQueryParam(parts[0], '', queryData)
       } else if (numParts === 2 && parts[0] && parts[1]) {
-        VoltUtil.push(parts[0], parts[1], queryData)
+        VoltUtil.pushQueryParam(parts[0], parts[1], queryData)
       }
     }
 

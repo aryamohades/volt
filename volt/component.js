@@ -244,7 +244,7 @@ var VoltComponent = (function() {
     var scope = initializeScope(component)
     _readyQueue.push(scope)
     copyAttrs(el, dom.firstElementChild)
-    setProps(el, component, scope, parentScope, loopScope)
+    setProps(el, dom.firstElementChild, component, scope, parentScope, loopScope)
     setRefs(el, scope, parentScope, loopScope)
     initComponentData(component, scope)
     initComponentMethods(component, scope)
@@ -313,7 +313,7 @@ var VoltComponent = (function() {
     }
   }
 
-  function setProps(el, component, scope, parentScope, loopScope) {
+  function setProps(el, replaceEl, component, scope, parentScope, loopScope) {
     var props = component.props
 
     if (!props) return
@@ -325,8 +325,14 @@ var VoltComponent = (function() {
       if (attr) {
         setProp(p, attr, propConfig, scope, parentScope, loopScope)
       } else {
+        if (propConfig.required === true) {
+          throw 'Missing prop: ' + p + ' is required by component ' + component._name
+        }
+
         setDefaultProp(p, propConfig, scope)
       }
+
+      replaceEl.removeAttribute(p)
     }
   }
 

@@ -103,13 +103,23 @@ var VoltUtil = (function() {
     return result['']
   }
 
-  function push(key, value, data) {
-    var curr = data[key]
+  function pushQueryParam(key, value, obj) {
+    var cur = obj[key]
 
-    if (!curr) {
-      data[key] = value
+    if (!cur) {
+      obj[key] = value
     } else {
-      Array.isArray(curr) ? curr.push(value) : data[key] = [curr, value]
+      Array.isArray(cur) ? cur.push(value) : obj[key] = [cur, value]
+    }
+  }
+
+  function push(key, value, obj) {
+    var cur = obj[key]
+
+    if (!cur) {
+      obj[key] = [value]
+    } else {
+      obj[key].push(value)
     }
   }
 
@@ -139,12 +149,31 @@ var VoltUtil = (function() {
     }
   }
 
+  function find(arr, obj) {
+    if (!arr) return
+    
+    var key, val
+
+    for (var p in obj) {
+      key = p
+      val = obj[p]
+    }
+
+    for (var i = 0, l = arr.length; i < l; ++i) {
+      if (arr[i][key] === val) {
+        return arr[i]
+      }
+    }
+  }
+
   return {
     get: get,
     set: set,
+    find: find,
     flatten: flatten,
     unflatten: unflatten,
     push: push,
+    pushQueryParam: pushQueryParam,
     clone: clone,
     Queue: Queue
   }

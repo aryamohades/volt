@@ -1,4 +1,5 @@
 var VoltBind = (function() {
+
   var _bindHandlers = {
     'v-click': bindClick,
     'v-text': bindText,
@@ -84,6 +85,7 @@ var VoltBind = (function() {
     }
 
     VoltComponent.addUpdate(watcher)
+    return watcher
   }
 
   function bindRef(el, bindTo, scope, parentScope, loopScope) {
@@ -119,9 +121,10 @@ var VoltBind = (function() {
     }
     
     VoltComponent.addUpdate(watcher)
+    return watcher
   }
 
-  function bindFor(el, bindTo, scope, parentScope, loopScope) {
+  function bindFor(el, bindTo, scope, parentScope, loopScope, hasIf) {
     el.removeAttribute('@for')
     var parsed = parseForAttr(bindTo)
 
@@ -145,12 +148,13 @@ var VoltBind = (function() {
       convertValue('array', value, parsed.src, watcher, scope)
     }
 
-    el.innerHTML = ''
-
+    VoltDom.clear(el)
     VoltComponent.addUpdate(watcher)
+
+    return watcher
   }
 
-  function bindIfNode(el, bindTo, bindType, chain, scope, parentScope, loopScope) {
+  function bindIfNode(el, anchor, bindTo, bindType, chain, scope, parentScope, loopScope) {
     el.removeAttribute(bindType)
 
     var value, inLoopScope = false
@@ -162,7 +166,8 @@ var VoltBind = (function() {
     }
 
     var watcher = {
-      anchor: el,
+      anchor: anchor,
+      el: el,
       chain: chain,
       html: el.outerHTML,
       value: value,
@@ -181,38 +186,40 @@ var VoltBind = (function() {
 
     chain.push(watcher)
 
+
     return watcher
   }
 
   function bindIf(el, bindTo, scope, parentScope, loopScope) {
     var remove = []
     var chain = []
-    var watcher = bindIfNode(el, bindTo, '@if', chain, scope, parentScope, loopScope)
+    var watcher = bindIfNode(el, el, bindTo, '@if', chain, scope, parentScope, loopScope)
 
     var next = el.nextElementSibling
     var elseIfAttr = next !== null ? next.getAttribute('@else-if') : null
 
     while (elseIfAttr !== null) {
       remove.push(next)
-      bindIfNode(next, elseIfAttr, '@else-if', chain, scope, parentScope, loopScope)
+      bindIfNode(next, el, elseIfAttr, '@else-if', chain, scope, parentScope, loopScope)
       next = next.nextElementSibling
       elseIfAttr = next !== null ? next.getAttribute('@else-if') : null
     }
 
     if (next && next.hasAttribute('@else')) {
       remove.push(next)
-      bindIfNode(next, null, '@else', chain, scope, parentScope, loopScope)
+      bindIfNode(next, el, null, '@else', chain, scope, parentScope, loopScope)
     }
 
-    el.innerHTML = ''
-
+    VoltDom.clear(el)
     VoltDom.removeMulti(remove)
 
     VoltComponent.addUpdate(watcher)
+    return watcher
   }
 
   function bindClick(el, bindTo, scope, parentScope, loopScope) {
     var handler = scope[bindTo].bind(scope)
+
     var listener = {
       el: el,
       type: 'click',
@@ -242,14 +249,11 @@ var VoltBind = (function() {
 
   function updateFor() {
     var watcher = this
+
     watcher.value = getUpdateValue(watcher)
     var arr = watcher.value
 
-    for (var i = 1, l = watcher.els.length; i < l; ++i) {
-      VoltDom.remove(watcher.els[i])
-    }
-
-    watcher.els = []
+    disposeFor(watcher)
 
     if (!Array.isArray(arr)) {
       VoltDom.hide(watcher.anchor)
@@ -295,27 +299,34 @@ var VoltBind = (function() {
   function updateIf() {
     var watcher = this
     var chain = watcher.chain
-    var newNode
+    var newAnchor, deactivate
 
     for (var i = 0, l = chain.length; i < l; ++i) {
       var watcherNode = chain[i]
+
       watcherNode.value = getUpdateValue(watcherNode)
-      
-      if (watcherNode.value === true) {
+
+      if (watcherNode.active && watcherNode.value === false) {
+        deactivate = watcherNode
+      }
+
+      if (watcherNode.value === true && !newAnchor) {
+        watcherNode.active = true
         var html = watcherNode.html
         var scope = watcherNode.scope
         var parentScope = watcherNode.parentScope
-        var loopScope = watcherNode.loopScope  
-        newNode = VoltComponent.setupDom(html, scope, parentScope, loopScope)
-        break
+        var loopScope = watcherNode.loopScope
+        newAnchor = VoltComponent.setupDom(html, scope, parentScope, loopScope)
+      } else {
+        watcherNode.active = false
       }
     }
 
-    if (newNode) {
-      VoltDom.replace(watcher.anchor, newNode)
+    if (newAnchor) {
+      VoltDom.replace(watcher.anchor, newAnchor)
 
       for (var i = 0, l = chain.length; i < l; ++i) {
-        chain[i].anchor = newNode
+        chain[i].anchor = newAnchor
       }
 
       VoltDom.show(chain[0].anchor)
@@ -325,6 +336,14 @@ var VoltBind = (function() {
     }
   }
 
+  function disposeFor(watcher) {
+    for (var i = 1, l = watcher.els.length; i < l; ++i) {
+      VoltDom.remove(watcher.els[i])
+    }
+
+    watcher.els = []
+  }
+  
   function bind(options, fn) {
     var stateFields = options.state
     var dataFields = options.data
