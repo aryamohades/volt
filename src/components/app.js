@@ -57,14 +57,12 @@ Volt.component('app', {
   ],
 
   ready: function() {
-    console.log('App mounted')
-    console.log('REF', this.$refs.lolref)
   },
 
   data: function() {
     return {
       userInfo: null,
-      users: null,
+      users: [{name: 'Arya', id: '12345'}, {name: 'Bob', id: '54321'}],
       rando: this.$bindState('rando'),
       first: true,
       second: false,

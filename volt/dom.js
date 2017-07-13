@@ -41,6 +41,14 @@ var VoltDom = (function() {
     el.setAttribute(name, value)
   }
 
+  function getAttribute(el, name) {
+    return el.getAttribute(name)
+  }
+  
+  function addAttribute(el, name) {
+    el.setAttribute(name, '')
+  }
+
   function hide(el) {
     el.style.display = 'none'
   }
@@ -64,6 +72,8 @@ var VoltDom = (function() {
     replace: replaceNode,
     fragment: createFragment,
     setAttribute: setAttribute,
+    getAttribute: getAttribute,
+    addAttribute: addAttribute,
     renderText: renderText
   }
 })();

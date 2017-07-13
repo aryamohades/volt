@@ -151,7 +151,7 @@ var VoltComponent = (function() {
 
     if (value) {
       var handler = VoltBind.getBindHandler('v-for')
-      handler(el, value, scope, parentScope, loopScope)
+      var watcher = handler(el, value, scope, parentScope, loopScope)
     }
 
     return value !== null
@@ -260,7 +260,9 @@ var VoltComponent = (function() {
       _dataWatchers: {},
       _stateWatchers: {},
       _listeners: [],
-      _component: component
+      _component: component,
+      _for: [],
+      _if: []
     }
 
     scope.$refs = {}

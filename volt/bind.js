@@ -124,7 +124,7 @@ var VoltBind = (function() {
     return watcher
   }
 
-  function bindFor(el, bindTo, scope, parentScope, loopScope, hasIf) {
+  function bindFor(el, bindTo, scope, parentScope, loopScope) {
     el.removeAttribute('@for')
     var parsed = parseForAttr(bindTo)
 
@@ -148,6 +148,8 @@ var VoltBind = (function() {
       convertValue('array', value, parsed.src, watcher, scope)
     }
 
+    scope._for.push(watcher)
+
     VoltDom.clear(el)
     VoltComponent.addUpdate(watcher)
 
@@ -156,7 +158,6 @@ var VoltBind = (function() {
 
   function bindIfNode(el, anchor, bindTo, bindType, chain, scope, parentScope, loopScope) {
     el.removeAttribute(bindType)
-
     var value, inLoopScope = false
 
     if (bindType !== '@else') {
@@ -184,8 +185,8 @@ var VoltBind = (function() {
       convertValue('boolean', value, bindTo, watcher, scope)
     }
 
+    scope._if.push(watcher)
     chain.push(watcher)
-
 
     return watcher
   }
@@ -253,7 +254,14 @@ var VoltBind = (function() {
     watcher.value = getUpdateValue(watcher)
     var arr = watcher.value
 
-    disposeFor(watcher)
+    for (var i = 0, l = watcher.scope._if.length; i < l; ++i) {
+      var w = watcher.scope._if[i]
+      if (w.el === watcher.anchor && !w.active) {
+        return
+      }
+    }
+
+    clearFor(watcher)
 
     if (!Array.isArray(arr)) {
       VoltDom.hide(watcher.anchor)
@@ -287,6 +295,15 @@ var VoltBind = (function() {
     }
 
     if (newAnchor) {
+      for (var i = 0, l = watcher.scope._if.length; i < l; ++i) {
+        var w = watcher.scope._if[i]
+
+        if (w.anchor === watcher.anchor) {
+          w.anchor = newAnchor
+          w.el = newAnchor
+        }
+      }
+
       VoltDom.replace(watcher.anchor, frag)
       watcher.anchor = newAnchor
       VoltDom.show(watcher.anchor)
@@ -322,14 +339,30 @@ var VoltBind = (function() {
       }
     }
 
+    if (deactivate) {
+      for (var i = 0, l = watcher.scope._for.length; i < l; ++i) {
+        if (watcher.scope._for[i].anchor === deactivate.anchor) {
+          disposeFor(watcher.scope._for[i])
+        }
+      }
+    }
+
     if (newAnchor) {
+      for (var i = 0, l = watcher.scope._for.length; i < l; ++i) {
+        var w = watcher.scope._for[i]
+        if (w.anchor === watcher.anchor) {
+          w.anchor = newAnchor
+        }
+      }
+
       VoltDom.replace(watcher.anchor, newAnchor)
 
       for (var i = 0, l = chain.length; i < l; ++i) {
+        if (chain[i].el === watcher.anchor) {
+          chain[i].el = newAnchor
+        }
         chain[i].anchor = newAnchor
       }
-
-      VoltDom.show(chain[0].anchor)
     } else {
       VoltDom.hide(watcher.anchor)
       VoltDom.clear(watcher.anchor)
@@ -337,10 +370,31 @@ var VoltBind = (function() {
   }
 
   function disposeFor(watcher) {
+    clearFor(watcher)
+
+    for (var i = 0, l = watcher.scope._for.length; i < l; ++i) {
+      var w = watcher.scope._for[i]
+      if (watcher === w) {
+        watcher.scope._for.splice(i, 1)
+        break
+      }
+    }
+
+    for (var i = 0, l = watcher.dataFields.length; i < l; ++i) {
+      var field = watcher.dataFields[i]
+      var watchers = watcher.scope._dataWatchers[field]
+      var idxFound = watchers.indexOf(watcher)
+
+      if (idxFound !== -1) {
+        watchers.splice(idxFound, 1)
+      }
+    }
+  }
+
+  function clearFor(watcher) {
     for (var i = 1, l = watcher.els.length; i < l; ++i) {
       VoltDom.remove(watcher.els[i])
     }
-
     watcher.els = []
   }
   

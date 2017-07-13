@@ -39,7 +39,7 @@ var VoltUtil = (function() {
       for (i = 0; i < l - 1; ++i) {
         cur = obj[parts[i]]
 
-        if (cur === null) {
+        if (!cur) {
           return
         }
       }
