@@ -13,23 +13,35 @@ Volt.request('getUser', {
 // Define template
 Volt.template('app', `
 <div class="page">
+  <div @ref="lol" @text="name.firstName"></div>
+  <div>
+    <img style="height:100px" @src="getSrc">
+    <button @click="changeImgSrc">Change Image</button>
+  </div>
   <div @text="fullName"></div>
   <button @click="getUser">Get User API</button>
   <div @text="rando"></div>
   <button @click="changeRando">Change Rando</button>
+
+  <div @for="user in users" style="border: 1px solid green">
+    <div @text="user.id"></div>
+    <div @text="user.name"></div>
+    <div @text="user.pantone_value"></div>
+  </div>
+
   <div><span>First Condition: </span><span @text="first"></span></div>
   <div><span>Second Condition: </span><span @text="second"></span></div>
 
   <button @click="toggleFirst">Toggle First Condition</button>
   <button @click="toggleSecond">Toggle Second Condition</button>
-  <div>
-    <img style="height:100px" @src="getSrc">
-    <button @click="changeImgSrc">Change Image</button>
-  </div>
+  
   <div @if="first" @for="user in users" style="border: 1px solid green">
     <div @text="user.id"></div>
     <div @text="user.name"></div>
     <div @text="user.pantone_value"></div>
+    <div @for="post in user.posts">
+      <div @text="post"></div>
+    </div>
   </div>
   <button @click="getUsers">Get Users API</button>
   <button @click="removeUsers">Remove Users</button>
@@ -40,10 +52,12 @@ Volt.template('app', `
   </example>
 
   <router-view></router-view>
-  <example ref="lolref" fnFromProps="fnAsProp" number="50">
+  <example @ref="lolref" fnFromProps="fnAsProp" number="50">
     <another></another>
     <button @click="logMessage">Log Message</button>
   </example>
+<!--   <div>Checkbox</div>
+  <input type="checkbox" value="checkbox value" @model="checked"> -->
 </div>
 `)
 
@@ -61,8 +75,20 @@ Volt.component('app', {
 
   data: function() {
     return {
+      checked: true,
       userInfo: null,
-      users: [{name: 'Arya', id: '12345'}, {name: 'Bob', id: '54321'}],
+      users: [
+        {
+          name: 'Arya',
+          id: '12345',
+          posts: ['Hey', 'lol', 'what', 'another post']
+        },
+        {
+          name: 'Bob',
+          id: '54321',
+          posts: ['This is a post', 'yo']
+        }
+      ],
       rando: this.$bindState('rando'),
       first: true,
       second: false,

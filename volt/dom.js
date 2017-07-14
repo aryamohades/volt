@@ -44,9 +44,32 @@ var VoltDom = (function() {
   function getAttribute(el, name) {
     return el.getAttribute(name)
   }
-  
+
   function addAttribute(el, name) {
     el.setAttribute(name, '')
+  }
+
+  function copyAttributes(fromEl, toEl) {
+    var attrs = fromEl.attributes
+
+    for (var i = 0, l = attrs.length; i < l; ++i) {
+      var attr = attrs[i]
+      var name = attr.name
+
+      if (name.startsWith('@')) {
+        name = 'v-' + name.slice(1)
+      }
+
+      toEl.setAttribute(name, attr.value)
+    }
+  }
+
+  function transferChildren(fromEl, toEl) {
+    while (fromEl.childNodes.length > 0) {
+      toEl.appendChild(fromEl.childNodes[0])
+    }
+    
+    return toEl
   }
 
   function hide(el) {
@@ -74,6 +97,8 @@ var VoltDom = (function() {
     setAttribute: setAttribute,
     getAttribute: getAttribute,
     addAttribute: addAttribute,
+    transferChildren: transferChildren,
+    copyAttributes: copyAttributes,
     renderText: renderText
   }
 })();

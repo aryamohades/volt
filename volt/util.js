@@ -48,6 +48,12 @@ var VoltUtil = (function() {
     }
   }
 
+  function assign(fromObj, toObj) {
+    for (var p in fromObj) {
+      toObj[p] = fromObj[p]
+    }
+  }
+
   function clone(obj) {
     var res = {}
     for (var p in obj) {
@@ -169,6 +175,7 @@ var VoltUtil = (function() {
   return {
     get: get,
     set: set,
+    assign: assign,
     find: find,
     flatten: flatten,
     unflatten: unflatten,
