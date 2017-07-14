@@ -73,11 +73,12 @@ var VoltComponent = (function() {
 
     while (!queue.isEmpty()) {
       var obj = queue.pop()
+      var handler = VoltBind.bindElement(obj.el, scopeObj)
 
       if (obj.el.hasAttribute('@if')) {
-        VoltBind.bindElement(obj.el, scopeObj)('@if')
+        handler('@if')
       } else if (obj.el.hasAttribute('@for')) {
-        VoltBind.bindElement(obj.el, scopeObj)('@for')
+        handler('@for')
       } else {
         var newScope = setupNewComponent(obj.component, obj.el, {
           scope: scopeObj.scope,
@@ -117,6 +118,8 @@ var VoltComponent = (function() {
       var el = queue.pop()
       var tagName = el.tagName.toLowerCase()
 
+      extractChildren(el, queue)
+
       if (components[tagName]) {
         componentQueue.push({
           el: el,
@@ -126,11 +129,19 @@ var VoltComponent = (function() {
       } else {
         VoltBind.bindAttributes(el, scopeObj)
       }
+    }
+  }
 
-      if (!el.hasAttribute('@if') && !el.hasAttribute('@for')) {
-        for (var i = 0, l = el.children.length; i < l; ++i) {
-          queue.push(el.children[i])
-        }
+  function extractChildren(el, queue) {
+    if (el.hasAttribute('@if') || el.hasAttribute('@for')) {
+      return
+    }
+
+    for (var i = 0, l = el.children.length; i < l; ++i) {
+      var child = el.children[i]
+
+      if (!child.hasAttribute('@else-if') && !child.hasAttribute('@else')) {
+        queue.push(child)
       }
     }
   }
@@ -202,7 +213,7 @@ var VoltComponent = (function() {
         setProp(p, value, propConfig, scopeObj)
       } else {
         if (propConfig.required === true) {
-          throw 'Missing prop: ' + p + ' is required by component ' + component._name
+          throw new Error('Missing prop: ' + p + ' is required by component ' + component._name)
         }
 
         setDefaultProp(p, propConfig, scope)

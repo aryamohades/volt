@@ -9,7 +9,7 @@ var VoltProps = (function() {
   }
 
   function propTypeError(expected, got) {
-    return 'Invalid prop type. Expected ' + expected + ', but got ' + got
+    throw new Error('Invalid prop type. Expected ' + expected + ', but got ' + got)
   }
 
   function convert(value, type) {
@@ -19,25 +19,25 @@ var VoltProps = (function() {
 
     if (type === PropTypes.Array) {
       if (!Array.isArray(value)) {
-        throw propTypeError('array', valueType)
+        propTypeError('array', valueType)
       }
       return value
     }
 
     if (value === null) {
-      throw propTypeError(type, null)
+      propTypeError(type, null)
     }
 
     switch (type) {
       case PropTypes.String:
         if (valueType !== 'string') {
-          throw propTypeError('string', valueType)
+          propTypeError('string', valueType)
         }
         ret = value
         break
       case PropTypes.Number:
         if (isNaN(value)) {
-          throw propTypeError('number', valueType)
+          propTypeError('number', valueType)
         }
         ret = Number(value)
         break
@@ -48,10 +48,10 @@ var VoltProps = (function() {
           try {
             ret = JSON.parse(value)
           } catch(e) {
-            throw propTypeError('object', valueType)
+            propTypeError('object', valueType)
           }
         } else {
-          throw propTypeError('object', valueType)
+          propTypeError('object', valueType)
         }
         break
       case PropTypes.Boolean:
@@ -64,12 +64,12 @@ var VoltProps = (function() {
             ret = false
           }
         } else {
-          throw propTypeError('boolean', valueType)
+          propTypeError('boolean', valueType)
         }
         break
       case PropTypes.Function:
         if (valueType !== 'function') {
-          throw propTypeError('function', valueType)
+          propTypeError('function', valueType)
         }
         ret = value
         break

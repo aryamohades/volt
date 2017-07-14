@@ -23,12 +23,6 @@ Volt.template('app', `
   <div @text="rando"></div>
   <button @click="changeRando">Change Rando</button>
 
-  <div @for="user in users" style="border: 1px solid green">
-    <div @text="user.id"></div>
-    <div @text="user.name"></div>
-    <div @text="user.pantone_value"></div>
-  </div>
-
   <div><span>First Condition: </span><span @text="first"></span></div>
   <div><span>Second Condition: </span><span @text="second"></span></div>
 
@@ -36,13 +30,13 @@ Volt.template('app', `
   <button @click="toggleSecond">Toggle Second Condition</button>
   
   <div @if="first" @for="user in users" style="border: 1px solid green">
+    <div>Hello</div>
     <div @text="user.id"></div>
-    <div @text="user.name"></div>
-    <div @text="user.pantone_value"></div>
-    <div @for="post in user.posts">
-      <div @text="post"></div>
-    </div>
+    <div @text="user.first_name"></div>
+    <img @src="user.avatar">
   </div>
+  <div @else-if="second" @text="user.first_name" @for="user in users" style="border: 1px solid purple"></div>
+  <div @else>hey</div>
   <button @click="getUsers">Get Users API</button>
   <button @click="removeUsers">Remove Users</button>
   <div @text="city"></div>
@@ -79,14 +73,12 @@ Volt.component('app', {
       userInfo: null,
       users: [
         {
-          name: 'Arya',
-          id: '12345',
-          posts: ['Hey', 'lol', 'what', 'another post']
+          first_name: 'Arya',
+          id: '12345'
         },
         {
-          name: 'Bob',
-          id: '54321',
-          posts: ['This is a post', 'yo']
+          first_name: 'Bob',
+          id: '54321'
         }
       ],
       rando: this.$bindState('rando'),
@@ -108,64 +100,24 @@ Volt.component('app', {
 
   methods: function() {
     return {
-      changeImgSrc: function(e) {
-        this.$setData('srcIndex', 1 - this.srcIndex)
-      },
+      changeImgSrc: (e) => this.$setData('srcIndex', 1 - this.srcIndex),
 
-      getSrc: this.$bindData('srcIndex', function(idx) {
-        return this.sources[idx]
-      }),
+      getSrc: this.$bindData('srcIndex', idx => this.sources[idx]),
 
-      fnAsProp: function() {
-        console.log('Ayyy lol im a function from props')
-      },
+      fnAsProp: () => console.log('Ayyy lol im a function from props'),
 
-      changeRando: function(e) {
-        this.$setState('rando', Math.random())
-      },
+      changeRando: e => this.$setState('rando', Math.random()),
 
-      toggleFirst: function(e) {
-        this.$setData('first', !this.first)
-      },
+      toggleFirst: e => this.$setData('first', !this.first),
 
-      toggleSecond: function(e) {
-        this.$setData('second', !this.second)
-      },
+      toggleSecond: e => this.$setData('second', !this.second),
 
-      numbers: function() {
-        return [
-          {
-            message: 'This is a message demonstrating nested loop scope',
-            value: 1,
-            arr: [10, 20, 30, 40, 50]
-          },
-          {
-            message: 'Hellohellohellohello',
-            value: 2,
-            arr: [5, 10, 15, 20, 25]
-          },
-          {
-            message: 'yayayayayayaya',
-            value: 3,
-            arr: [10, 9, 8, 7, 6]
-          }
-        ]
-      },
+      changeRandomValue: () => this.$setState('randomValue', Math.random()),
 
-      changeRandomValue: function() {
-        Volt.setState('randomValue', Math.random())
-      },
-
-      logMessage: function(e) {
-        this.$action('logMessage', 'Hello ' + this.name.firstName)
-      },
-
-      getGreeting: this.$bindData('name', function(name) {
-        return 'Hello ' + name + '!'
-      }),
+      logMessage: e => this.$action('logMessage', 'Hello ' + this.name.firstName),
 
       fullName: this.$bindData(['userInfo.first_name', 'userInfo.last_name'],
-        function(firstName, lastName) {
+        (firstName, lastName) => {
           if (firstName && lastName) {
             return firstName + ' ' + lastName
           }
@@ -179,25 +131,20 @@ Volt.component('app', {
         query: {
           q: 'hello'
         },
-        success: function(res) {
-          this.$setData('userInfo', res.data.data)
-        }
+        success: res => this.$setData('userInfo', res.data.data)
       }),
 
       getUsers: this.$request('getUsers', {
-          success: function(res) {
-            console.log('Success', res)
-            this.$setData('users', res.data.data)
-          },
-          error: function(err) {
-            console.log('Error', err)
-          }
+        success: res => {
+          console.log('Success', res)
+          this.$setData('users', res.data.data)
+        },
+        error: err => {
+          console.log('Error', err)
         }
-      ),
+      }),
 
-      removeUsers: function(e) {
-        this.$setData('users', null)
-      }
+      removeUsers: e => this.$setData('users', null)
     }
   }
 })

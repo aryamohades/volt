@@ -115,7 +115,7 @@ var VoltRequest = (function() {
   }
 
   function buildQueryString(query) {
-    if (!query) return
+    if (!query) return ''
 
     var queryString = '?'
 

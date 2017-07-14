@@ -117,6 +117,9 @@ var VoltBind = (function() {
     
     if (el.hasAttribute('@if')) {
       binder('@if')
+      if (el.hasAttribute('@for')) {
+        el.removeAttribute('@for')
+      }
     } else if (el.hasAttribute('@for')) {
       binder('@for')
     } else {
@@ -181,17 +184,21 @@ var VoltBind = (function() {
 
       if (type === '@else') {
         value = true
+        nodeWatcher.dataFields = []
       } else {
         var valueObj = getValueFromScope(attr, watcher.scopeObj)
         value = valueObj.value
 
         if (!valueObj.inLoop) {
-          processValue(valueObj.value, attr, watcher)
+          processValue(valueObj.value, attr, nodeWatcher)
         }
       }
 
+      nodeWatcher.bindTo = attr
       nodeWatcher.value = value
+      nodeWatcher.type = type
       nodeWatcher.el = el
+      nodeWatcher.html = el.outerHTML
       
       scope._if.push(nodeWatcher)
       chain.push(nodeWatcher)
@@ -243,15 +250,7 @@ var VoltBind = (function() {
   function updateFor() {
     var watcher = this
     var scope = watcher.scopeObj.scope
-
     watcher.value = getUpdateValue(watcher)
-
-    for (var i = 0, l = scope._if.length; i < l; ++i) {
-      var w = scope._if[i]
-      if (w.el === watcher.anchor && !w.active) {
-        return
-      }
-    }
 
     clearFor(watcher)
 
@@ -290,7 +289,6 @@ var VoltBind = (function() {
 
         if (w.anchor === watcher.anchor) {
           w.anchor = newAnchor
-          w.el = newAnchor
         }
       }
 
@@ -306,22 +304,23 @@ var VoltBind = (function() {
   function updateIf() {
     var watcher = this
     var scope = watcher.scopeObj.scope
-    var newAnchor, deactivate
+    var newAnchor, activeNode, deactivate, hasActive = false
 
     for (var i = 0, l = watcher.chain.length; i < l; ++i) {
       var watcherNode = watcher.chain[i]
-
       watcherNode.value = getUpdateValue(watcherNode)
 
-      if (watcherNode.active && watcherNode.value === false) {
-        deactivate = watcherNode
+      if (watcherNode.value === true && watcher.activeNode !== watcherNode && !hasActive) {
+        if (watcher.activeNode) {
+          deactivate = watcher.activeNode
+        }
+
+        activeNode = watcherNode
+        newAnchor = VoltComponent.setupDom(watcherNode.html, watcher.scopeObj)
       }
 
-      if (watcherNode.value === true && !newAnchor) {
-        watcherNode.active = true
-        newAnchor = VoltComponent.setupDom(watcher.html, watcher.scopeObj)
-      } else {
-        watcherNode.active = false
+      if (watcherNode.value === true) {
+        hasActive = true
       }
     }
 
@@ -335,22 +334,19 @@ var VoltBind = (function() {
     }
 
     if (newAnchor) {
-      for (var i = 0, l = scope._for.length; i < l; ++i) {
-        var w = scope._for[i]
-        if (w.anchor === watcher.anchor) {
-          w.anchor = newAnchor
-        }
-      }
-
       VoltDom.replace(watcher.anchor, newAnchor)
 
       for (var i = 0, l = watcher.chain.length; i < l; ++i) {
         if (watcher.chain[i].el === watcher.anchor) {
           watcher.chain[i].el = newAnchor
         }
+
+        watcher.chain[i].activeNode = activeNode
         watcher.chain[i].anchor = newAnchor
       }
-    } else {
+    }
+
+    if (!hasActive) {
       VoltDom.hide(watcher.anchor)
       VoltDom.clear(watcher.anchor)
     }
@@ -496,7 +492,7 @@ var VoltBind = (function() {
     var parts = value.split(' ')
 
     if (parts.length !== 3 || parts[1] !== 'in') {
-      throw 'Invalid attribute ' + attr
+      throw new Error('Invalid attribute ' + attr)
     }
 
     return {
