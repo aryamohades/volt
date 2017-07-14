@@ -165,29 +165,6 @@ var VoltComponent = (function() {
     return scope
   }
 
-  // function initComponent(component, el, scopeObj) {
-  //   var template = VoltTemplate.get(component.render)
-  //   var dom = VoltDom.create('div', template)
-  //   VoltDom.copyAttributes(el, dom.firstElementChild)
-
-  //   var scope = initializeScope(component)
-  //   scope._el = dom.firstElementChild
-    
-  //   var newScopeObj = {
-  //     scope: scope,
-  //     parentScope: scopeObj.parentScope,
-  //     loopScope: scopeObj.loopScope
-  //   }
-
-  //   setComponentProps(el, component, newScopeObj)
-  //   initComponentData(component, scope)
-  //   initComponentMethods(component, scope)
-
-  //   _readyQueue.push(scope)
-
-  //   return scope
-  // }
-
   function initializeScope(component) {
     var scope = {
       _dataWatchers: {},
