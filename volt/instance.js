@@ -1,5 +1,5 @@
-var Volt = (function() {
-  var _props = {}
+const Volt = (function() {
+  const _props = {}
 
   function set(key, value) {
     _props[key] = value
@@ -11,11 +11,19 @@ var Volt = (function() {
 
   function init(options) {
     console.time()
+
+    if (options.storageKey) {
+      set('storageKey', options.storageKey)
+    }
+
     VoltState.init()
-    var dom = VoltComponent.initMain(options.main)
-    var mount = VoltDom.get(options.mount)
+
+    const dom = VoltComponent.initMain(options.main)
+    const mount = VoltDom.get(options.mount)
+
     VoltComponent.mountComponent(dom, mount)
     VoltRouter.init()
+
     console.timeEnd()
   }
 

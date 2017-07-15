@@ -1,5 +1,5 @@
-var VoltProps = (function() {
-  var PropTypes = {
+const VoltProps = (function() {
+  const PropTypes = {
     Number: 'number',
     String: 'string',
     Array: 'array',
@@ -12,77 +12,112 @@ var VoltProps = (function() {
     throw new Error('Invalid prop type. Expected ' + expected + ', but got ' + got)
   }
 
-  function convert(value, type) {
-    var ret
-
-    var valueType = value !== null ? typeof value : null
-
-    if (type === PropTypes.Array) {
-      if (!Array.isArray(value)) {
-        propTypeError('array', valueType)
+  function validatorFn(value, expect, type) {
+    function reject() {
+      if (value === null) {
+        propTypeError(expect, null)
       }
-      return value
+
+      propTypeError(expect, type)
     }
 
-    if (value === null) {
-      propTypeError(type, null)
+    return function(fn) {
+      return fn(value, type, reject)
+    }
+  }
+
+  function isDef(value, type, reject) {
+    if (value === undefined || value === null) {
+      reject()
+    }
+  }
+
+  function isString(value, type, reject) {
+    if (type !== PropTypes.String) {
+      reject()
     }
 
-    switch (type) {
+    return value
+  }
+
+  function isNumber(value, type, reject) {
+    if (isNaN(value)) {
+      reject()
+    }
+
+    return Number(value)
+  }
+
+  function isBoolean(value, type, reject) {
+    if (type === PropTypes.String) {
+      if (value === 'true') {
+        return true
+      } else if (value === 'false') {
+        return false
+      } else {
+        reject()
+      }
+    } else if (type !== PropTypes.Boolean) {
+      reject()
+    }
+
+    return value
+  }
+
+  function isArray(value, type, reject) {
+    if (!Array.isArray(value)) {
+      reject()
+    }
+
+    return value
+  }
+
+  function isObject(value, type, reject) {
+    if (type === PropTypes.String) {
+      try {
+        return JSON.parse(value)
+      } catch (e) {
+        reject()
+      }
+    } else if (!VoltUtil.isObject(value)) {
+      reject()
+    }
+
+    return value
+  }
+
+  function isFunction(value, type, reject) {
+    if (type !== PropTypes.Function) {
+      reject()
+    }
+
+    return value
+  }
+
+  function validate(value, expect) {
+    const validator = validatorFn(value, expect, typeof value)
+    validator(isDef)
+
+    switch (expect) {
       case PropTypes.String:
-        if (valueType !== 'string') {
-          propTypeError('string', valueType)
-        }
-        ret = value
-        break
+        return validator(isString)
       case PropTypes.Number:
-        if (isNaN(value)) {
-          propTypeError('number', valueType)
-        }
-        ret = Number(value)
-        break
-      case PropTypes.Object:
-        if (valueType === 'object') {
-          ret = value
-        } else if (valueType === 'string') {
-          try {
-            ret = JSON.parse(value)
-          } catch(e) {
-            propTypeError('object', valueType)
-          }
-        } else {
-          propTypeError('object', valueType)
-        }
-        break
+        return validator(isNumber)
+      case PropTypes.Array:
+        return validator(isArray)
       case PropTypes.Boolean:
-        if (valueType === 'boolean') {
-          ret = value
-        } else if (valueType === 'string') {
-          if (value === 'true') {
-            ret = true
-          } else if (value === 'false') {
-            ret = false
-          }
-        } else {
-          propTypeError('boolean', valueType)
-        }
-        break
+        return validator(isBoolean)
+      case PropTypes.Object:
+        return validator(isObject)
       case PropTypes.Function:
-        if (valueType !== 'function') {
-          propTypeError('function', valueType)
-        }
-        ret = value
-        break
+        return validator(isFunction)
       default:
-        ret = value
-        break
+        return value
     }
-
-    return ret
   }
 
   return {
-    convert: convert,
+    validate: validate,
     PropTypes: PropTypes
   }
 })();

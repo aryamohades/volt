@@ -5,6 +5,12 @@ var VoltComponent = (function() {
 
   function register(name, component) {
     component._name = name
+
+    if (!component.tagName) {
+      name = VoltUtil.lowerCaseFirst(name)
+      component.tagName = VoltUtil.hyphenate(name)
+    }
+
     _components[name] = component
   }
 
@@ -233,7 +239,7 @@ var VoltComponent = (function() {
     propValue = propValue !== undefined ? propValue : value
 
     if (config.type) {
-      var convertedValue = VoltProps.convert(propValue, config.type)
+      var convertedValue = VoltProps.validate(propValue, config.type)
       scopeObj.scope.$props[prop] = convertedValue
     } else {
       scopeObj.scope.$props[prop] = propValue

@@ -1,5 +1,5 @@
-var VoltTemplate = (function() {
-  var _templates = {}
+const VoltTemplate = (function() {
+  const _templates = {}
 
   function register(name, template) {
     _templates[name] = template

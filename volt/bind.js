@@ -238,7 +238,7 @@ var VoltBind = (function() {
   function updateAttribute() {
     var watcher = this
     watcher.value = getUpdateValue(watcher)
-    VoltDom.setAttribute(watcher.el, watcher.attr, watcher.value)
+    watcher.el.setAttribute(watcher.attr, watcher.value)
   }
 
   function updateText() {
@@ -266,7 +266,7 @@ var VoltBind = (function() {
 
     for (var i = 0, l = watcher.value.length; i < l; ++i) {
       var loopScope = {}
-      VoltUtil.assign(watcher.scopeObj.loopScope, loopScope)
+      VoltUtil.assign(loopScope, watcher.scopeObj.loopScope)
       loopScope[watcher.var] = watcher.value[i]
 
       var node = VoltComponent.setupDom(watcher.html, {

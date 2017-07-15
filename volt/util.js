@@ -1,23 +1,40 @@
-var VoltUtil = (function() {
+const VoltUtil = (function() {
+  const hyphenateRE = /([^-])([A-Z])/g
+
+  function hyphenate(str) {
+    return str
+      .replace(hyphenateRE, '$1-$2')
+      .replace(hyphenateRE, '$1-$2')
+      .toLowerCase()
+  }
+
+  function lowerCaseFirst(str) {
+    return str.charAt(0).toLowerCase() + str.slice(1)
+  }
+
+  function isObject(obj) {
+    return obj !== null && typeof obj === 'object'
+  }
 
   function set(obj, field, value) {
-    if (!obj || typeof obj !== 'object') return
+    if (!isObject(obj)) {
+      return
+    }
 
-    var parts = field.split('.')
-    var l = parts.length
+    const parts = field.split('.')
+    const l = parts.length
 
     if (l === 1) {
       obj[field] = value
     } else {
-      var cur, i
+      let cur, i
 
-      for (i = 0; i < l - 1; ++i) {
-        var part = parts[i]
-        if (obj[part]) {
-          cur = obj[part]
+      for (i = 0; i < l - 1; ++i) {        
+        if (obj[parts[i]]) {
+          cur = obj[parts[i]]
         } else {
           cur = {}
-          obj[part] = cur
+          obj[parts[i]] = cur
         }
       }
 
@@ -26,20 +43,22 @@ var VoltUtil = (function() {
   }
 
   function get(obj, field) {
-    if (!obj || typeof obj !== 'object') return
+    if (!isObject(obj)) {
+      return
+    }
 
-    var parts = field.split('.')
-    var l = parts.length
+    const parts = field.split('.')
+    const l = parts.length
 
     if (l === 1) {
       return obj[field]
     } else {
-      var cur, i
+      let cur, i
 
       for (i = 0; i < l - 1; ++i) {
         cur = obj[parts[i]]
 
-        if (!cur) {
+        if (!isObject(cur)) {
           return
         }
       }
@@ -48,69 +67,40 @@ var VoltUtil = (function() {
     }
   }
 
-  function assign(fromObj, toObj) {
-    for (var p in fromObj) {
-      toObj[p] = fromObj[p]
-    }
+  function assign(to, _from) {
+    Object.assign(to, _from)
   }
 
   function clone(obj) {
-    var res = {}
-    for (var p in obj) {
-      res[p] = obj[p]
-    }
-
-    return res
+    return Object.assign({}, obj)
   }
 
   function flatten(data) {
-    var result = {}
+    const res = {}
 
-    function recurse (cur, prop) {
+    const recurse = (cur, prop) => {
       if (Object(cur) !== cur || Array.isArray(cur)) {
-        result[prop] = cur
+        res[prop] = cur
       } else {
-        var isEmpty = true
+        let isEmpty = true
 
-        for (var p in cur) {
+        for (const p in cur) {
           isEmpty = false
           recurse(cur[p], prop ? prop + '.' + p : p)
         }
+
         if (isEmpty) {
-          result[prop] = {}
+          res[prop] = {}
         }
       }
     }
+
     recurse(data, '')
-    return result
-  }
-
-  function unflatten(data) {
-    if (Object(data) !== data) {
-      return data
-    }
-
-    var result = {}, cur, prop, idx, last, temp
-
-    for (var p in data) {
-      cur = result, prop = '', last = 0
-
-      do {
-        idx = p.indexOf('.', last)
-        temp = p.substring(last, idx !== -1 ? idx : undefined)
-        cur = cur[prop] || (cur[prop] = {})
-        prop = temp
-        last = idx + 1
-      } while (idx >= 0)
-
-      cur[prop] = data[p]
-    }
-
-    return result['']
+    return res
   }
 
   function pushQueryParam(key, value, obj) {
-    var cur = obj[key]
+    let cur = obj[key]
 
     if (!cur) {
       obj[key] = value
@@ -120,27 +110,21 @@ var VoltUtil = (function() {
   }
 
   function push(key, value, obj) {
-    var cur = obj[key]
-
-    if (!cur) {
-      obj[key] = [value]
-    } else {
-      obj[key].push(value)
-    }
+    obj[key] ? obj[key] = [value] : obj[key].push(value)
   }
 
   function Queue() {
-    var queue  = []
-    var offset = 0
+    let queue  = []
+    let offset = 0
 
     this.push = function(item){
-      queue.push(item);
+      queue.push(item)
     }
 
     this.pop = function() {
       if (queue.length == 0) return undefined
 
-      var item = queue[offset]
+      const item = queue[offset]
 
       if (++offset * 2 >= queue.length){
         queue = queue.slice(offset)
@@ -155,33 +139,17 @@ var VoltUtil = (function() {
     }
   }
 
-  function find(arr, obj) {
-    if (!arr) return
-    
-    var key, val
-
-    for (var p in obj) {
-      key = p
-      val = obj[p]
-    }
-
-    for (var i = 0, l = arr.length; i < l; ++i) {
-      if (arr[i][key] === val) {
-        return arr[i]
-      }
-    }
-  }
-
   return {
     get: get,
     set: set,
-    assign: assign,
-    find: find,
-    flatten: flatten,
-    unflatten: unflatten,
-    push: push,
-    pushQueryParam: pushQueryParam,
     clone: clone,
-    Queue: Queue
+    assign: assign,
+    push: push,
+    flatten: flatten,
+    isObject: isObject,
+    Queue: Queue,
+    pushQueryParam: pushQueryParam,
+    lowerCaseFirst: lowerCaseFirst,
+    hyphenate: hyphenate
   }
 })();

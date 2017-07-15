@@ -1,4 +1,5 @@
 Volt.init({
   mount: 'app',
-  main: 'app'
+  main: 'app',
+  storageKey: 'example'
 })

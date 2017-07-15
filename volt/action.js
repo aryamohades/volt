@@ -1,5 +1,5 @@
-var VoltAction = (function() {
-  var _actions = {}
+const VoltAction = (function() {
+  const _actions = {}
 
   function register(name, action) {
     _actions[name] = action
@@ -10,7 +10,7 @@ var VoltAction = (function() {
   }
 
   function dispatch(name, args) {
-    var action = get(name)
+    const action = get(name)
     return Array.isArray(args) ? action.apply(this, args) : action(args)
   }
 

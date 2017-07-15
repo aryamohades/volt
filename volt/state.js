@@ -1,21 +1,21 @@
-var VoltState = (function() {
-  var _state = {}
-  var _watchers = {}
-  var _synced = {}
-  var _isSynced = false
+const VoltState = (function() {
+  const _state = {}
+  const _watchers = {}
+  const _synced = {}
+  let _isSynced = false
   
   function register(module, state) {
-    var obj = {}
+    let stateObj = {}
 
-    if (typeof module === 'object') {
-      obj = module
+    if (VoltUtil.isObject(module)) {
+      stateObj = module
     } else {
-      obj[module] = state
+      stateObj[module] = state
     }
 
-    var flatState = VoltUtil.flatten(obj)
+    const flatState = VoltUtil.flatten(stateObj)
 
-    for (var p in flatState) {
+    for (const p in flatState) {
       _state[p] = flatState[p]
       _watchers[p] = []
     }
@@ -32,40 +32,38 @@ var VoltState = (function() {
       updateSavedState(field, value)
     }
     
-    var stateWatchers = _watchers[field]
+    const stateWatchers = _watchers[field]
 
-    for (var i = 0, l = stateWatchers.length; i < l; ++i) {
-      var watcher = stateWatchers[i]
+    for (let i = 0, l = stateWatchers.length; i < l; ++i) {
+      const watcher = stateWatchers[i]
       watcher.value = value
       watcher.update()
     }
   }
 
   function syncFields(module, fields) {
-    _isSynced = true
-
-    var prefix = ''
-
-    if (fields) {
-      prefix += module + '.'
-    } else {
+    if (fields === undefined) {
       fields = Array.isArray(module) ? module : [module]
     }
 
-    for (var i = 0, l = fields.length; i < l; ++i) {
-      var field = fields[i]
-      _synced[prefix + field] = true
-    }    
+    let prefix = fields !== undefined ? module + '.' : ''
+
+    for (let i = 0, l = fields.length; i < l; ++i) {
+      _isSynced = true
+      _synced[prefix + fields[i]] = true
+    }
   }
 
   function syncState() {
-    if (!_isSynced) return
+    if (!_isSynced) {
+      return
+    }
 
-    var savedState = getSavedState()
-    var targetState = savedState ? _state : {}
-    var sourceState = savedState ? savedState : _state
+    const savedState = getSavedState()
+    const targetState = savedState ? _state : {}
+    const sourceState = savedState ? savedState : _state
 
-    for (var p in _synced) {
+    for (const p in _synced) {
       targetState[p] = sourceState[p]
     }
 
@@ -75,7 +73,8 @@ var VoltState = (function() {
   }
 
   function getSavedState() {
-    var savedState = localStorage.getItem(Volt.get('storageKey'))
+    const storageKey = Volt.get('storageKey')
+    const savedState = localStorage.getItem(storageKey)
 
     try {
       return JSON.parse(savedState)
@@ -85,11 +84,12 @@ var VoltState = (function() {
   }
 
   function setSavedState(state) {
-    localStorage.setItem(Volt.get('storageKey'), JSON.stringify(state))
+    const storageKey = Volt.get('storageKey')
+    localStorage.setItem(storageKey, JSON.stringify(state))
   }
 
   function updateSavedState(field, value) {
-    var savedState = getSavedState()
+    const savedState = getSavedState()
     savedState[field] = value
     setSavedState(savedState)
   }

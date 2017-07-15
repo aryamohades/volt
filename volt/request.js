@@ -1,7 +1,7 @@
-var VoltRequest = (function() {
-  var _requests = {}
-  var _api = {}
-  var _beforeEachHook
+const VoltRequest = (function() {
+  const _requests = {}
+  const _api = {}
+  let _beforeEachHook
 
   function register(name, request) {
     request.method = request.method.toLowerCase()
@@ -20,11 +20,9 @@ var VoltRequest = (function() {
     return req.status >= 200 && req.status < 400
   }
 
-  function attachRequestHandlers(request, options) {
-    var scope = this
-
-    request.onload = function() {
-      var res = {
+  function attachRequestHandlers(request, options, scope) {
+    request.onload = () => {
+      const res = {
         status: request.status
       }
 
@@ -45,7 +43,7 @@ var VoltRequest = (function() {
       }
     }
 
-    request.onerror = function() {
+    request.onerror = () => {
       if (options.error) {
         options.error.bind(scope)()
       }
@@ -53,7 +51,7 @@ var VoltRequest = (function() {
   }
 
   function setRequestHeaders(request, options) {
-    for (var p in options.headers) {
+    for (const p in options.headers) {
       if (options.headers[p]){
         request.setRequestHeader(p, options.headers[p])
       }
@@ -64,17 +62,15 @@ var VoltRequest = (function() {
     options.data ? request.send(JSON.stringify(options.data)) : request.send()
   }
 
-  function makeRequest(options) {
-    var scope = this
-
+  function makeRequest(options, scope) {
     if (options.before) {
       options.before.bind(scope)()
     }
 
-    var request = new XMLHttpRequest()
-    var requestUrl = _api.base + options.endpoint
+    const request = new XMLHttpRequest()
+    let requestUrl = _api.base + options.endpoint
 
-    requestUrl = requestUrl.replace(/:([^\/]+)/g, function(match, token) {
+    requestUrl = requestUrl.replace(/:([^\/]+)/g, (match, token) => {
       return options.params[token]
     })
 
@@ -86,27 +82,31 @@ var VoltRequest = (function() {
       request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
     }
 
-    attachRequestHandlers.bind(scope)(request, options)
+    attachRequestHandlers(request, options, scope)
     setRequestHeaders(request, options)
     sendRequest(request, options)
   }
 
   function prepareRequest(name, options) {
-    var request = get(name)
+    const scope = this
+    const request = get(name)
 
-    for (var p in request) {
-      options[p] = request[p]
+    VoltUtil.assign(options, request)
+
+    if (!options.headers) {
+      options.headers = {}
     }
 
-    if (!options.headers) options.headers = {}
-    if (!options.params) options.params = {}
+    if (!options.params) {
+      options.params = {}
+    }
 
     return function() {
       if (_beforeEachHook) {
         _beforeEachHook(options)
       }
 
-      makeRequest.bind(this)(options)
+      makeRequest(options, scope)
     }
   }
 
@@ -115,11 +115,13 @@ var VoltRequest = (function() {
   }
 
   function buildQueryString(query) {
-    if (!query) return ''
+    if (!query) {
+      return ''
+    }
 
-    var queryString = '?'
+    let queryString = '?'
 
-    for (var key in query) {
+    for (const key in query) {
       queryString += key + '=' + query[key] + '&'
     }
 
