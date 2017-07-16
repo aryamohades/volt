@@ -109,8 +109,23 @@ const VoltUtil = (function() {
     }
   }
 
+  function buildQueryString(query) {
+    if (!query) {
+      return ''
+    }
+
+    let queryString = '?'
+
+    for (const key in query) {
+      queryString += key + '=' + query[key] + '&'
+    }
+
+    queryString = queryString.slice(0, -1)
+    return queryString
+  }
+
   function push(key, value, obj) {
-    obj[key] ? obj[key] = [value] : obj[key].push(value)
+    obj[key] ? obj[key].push(value) : obj[key] = [value]
   }
 
   function Queue() {
@@ -126,7 +141,7 @@ const VoltUtil = (function() {
 
       const item = queue[offset]
 
-      if (++offset * 2 >= queue.length){
+      if (++offset * 2 >= queue.length) {
         queue = queue.slice(offset)
         offset = 0
       }
@@ -149,6 +164,7 @@ const VoltUtil = (function() {
     isObject: isObject,
     Queue: Queue,
     pushQueryParam: pushQueryParam,
+    buildQueryString: buildQueryString,
     lowerCaseFirst: lowerCaseFirst,
     hyphenate: hyphenate
   }

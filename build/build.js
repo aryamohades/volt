@@ -21,7 +21,7 @@ let template = config.template
 let builder = new HtmlBuilder()
 
 /**
- * Process css text by adding prefixes and minifying
+ * Process css text
  *
  * @param {string} css The css text to process
  * @returns {Promise}
@@ -166,7 +166,7 @@ dirs.map(dir => {
 })
 
 // Add main entry file
-srcJs += io.readFile(path.join(__dirname, [srcDir, 'main.js'].join('/'))) + '\n'
+srcJs += io.readFile(path.join(__dirname, [srcDir, config.main].join('/'))) + '\n'
 
 let js = coreJs + srcJs
 

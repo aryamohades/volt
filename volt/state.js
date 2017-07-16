@@ -2,7 +2,6 @@ const VoltState = (function() {
   const _state = {}
   const _watchers = {}
   const _synced = {}
-  let _isSynced = false
   
   function register(module, state) {
     let stateObj = {}
@@ -31,31 +30,29 @@ const VoltState = (function() {
     if (_synced[field]) {
       updateSavedState(field, value)
     }
-    
-    const stateWatchers = _watchers[field]
 
-    for (let i = 0, l = stateWatchers.length; i < l; ++i) {
-      const watcher = stateWatchers[i]
+    for (let watcher of _watchers[field]) {
       watcher.value = value
       watcher.update()
     }
   }
 
   function syncFields(module, fields) {
+    let prefix = ''
+
     if (fields === undefined) {
       fields = Array.isArray(module) ? module : [module]
+    } else {
+      prefix = module + '.'
     }
 
-    let prefix = fields !== undefined ? module + '.' : ''
-
-    for (let i = 0, l = fields.length; i < l; ++i) {
-      _isSynced = true
-      _synced[prefix + fields[i]] = true
+    for (let field of fields) {
+      _synced[prefix + field] = true
     }
   }
 
   function syncState() {
-    if (!_isSynced) {
+    if (Object.keys(_synced).length === 0) {
       return
     }
 
@@ -63,9 +60,7 @@ const VoltState = (function() {
     const targetState = savedState ? _state : {}
     const sourceState = savedState ? savedState : _state
 
-    for (const p in _synced) {
-      targetState[p] = sourceState[p]
-    }
+    VoltUtil.assign(targetState, sourceState)
 
     if (!savedState) {
       setSavedState(targetState)

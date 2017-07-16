@@ -28,8 +28,8 @@ const VoltDom = (function() {
   }
 
   function removeMulti(els) {
-    for (let i = 0, l = els.length; i < l; ++i) {
-      remove(els[i])
+    for (let el of els) {
+      remove(el)
     }
   }
 
@@ -42,10 +42,7 @@ const VoltDom = (function() {
   }
 
   function copyAttributes(_from, to) {
-    const attrs = _from.attributes
-
-    for (let i = 0, l = attrs.length; i < l; ++i) {
-      const attr = attrs[i]
+    for (let attr of _from.attributes) {
       let name = attr.name
 
       if (name.startsWith('@')) {

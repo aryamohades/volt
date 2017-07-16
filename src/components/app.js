@@ -33,7 +33,9 @@ Volt.template('app', `
     <div>Hello</div>
     <div @text="user.id"></div>
     <div @text="user.first_name"></div>
+    <div @text="user.last_name"></div>
     <img @src="user.avatar">
+    <div @for="post in user.posts" @text="post"></div>
   </div>
   <div @else-if="second" @text="user.first_name" @for="user in users" style="border: 1px solid purple"></div>
   <div @else>hey</div>
@@ -74,11 +76,19 @@ Volt.component('app', {
       users: [
         {
           first_name: 'Arya',
-          id: '12345'
+          id: '12345',
+          posts: [
+            'Post one',
+            'Post two'
+          ]
         },
         {
           first_name: 'Bob',
-          id: '54321'
+          id: '54321',
+          posts: [
+            'This is a post',
+            'Another one'
+          ]
         }
       ],
       rando: this.$bindState('rando'),

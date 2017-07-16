@@ -1,11 +1,11 @@
-var VoltRouter = (function() {
-  var _supportsPushState = typeof window.history.pushState === 'function'
-  var _callAsync = typeof setImmediate === 'function' ? setImmediate : setTimeout
-  var _routes = []
-  var _beforeEachHook
-  var _asyncId
+const VoltRouter = (function() {
+  const _supportsPushState = typeof window.history.pushState === 'function'
+  const _callAsync = typeof setImmediate === 'function' ? setImmediate : setTimeout
+  const _routes = []
+  let _beforeEachHook
+  let _asyncId
 
-  var _router = {
+  const _router = {
     query: {},
     params: {},
     hash: null,
@@ -15,11 +15,11 @@ var VoltRouter = (function() {
   }
 
   function debounceAsync(callback) {
-    return function() {
+    return () => {
       if (_asyncId != null) {
         return
       }
-      _asyncId = _callAsync(function() {
+      _asyncId = _callAsync(() => {
         _asyncId = null
         callback()
       })
@@ -27,7 +27,7 @@ var VoltRouter = (function() {
   }
 
   function normalize(fragment) {
-    var data = window.location[fragment].replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
+    let data = window.location[fragment].replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
 
     if (fragment === 'pathname' && data[0] !== '/') {
       data = '/' + data
@@ -45,13 +45,12 @@ var VoltRouter = (function() {
   }
 
   function parseQuery(string) {
-    var queryData = {}
-    var entries = string.split('&')
+    const queryData = {}
+    const entries = string.split('&')
 
-    for (var i = 0, l = entries.length; i < l; ++i) {
-      var entry = entries[i]
-      var parts = entry.split('=')
-      var numParts = parts.length
+    for (let entry of entries) {
+      const parts = entry.split('=')
+      const numParts = parts.length
 
       if (numParts === 1) {
         VoltUtil.pushQueryParam(parts[0], '', queryData)
@@ -63,28 +62,15 @@ var VoltRouter = (function() {
     return queryData
   }
 
-  function buildQueryString(query) {
-    if (!query) return null
-
-    var queryString = '?'
-
-    for (var key in query) {
-      queryString += key + '=' + query[key] + '&'
-    }
-
-    queryString = queryString.slice(0, -1)
-    return queryString
-  }
-
   function parsePath(path, data) {
-    var queryIndex = path.indexOf('?')
-    var hashIndex = path.indexOf('#')
-    var pathEnd = queryIndex > -1 ? queryIndex : hashIndex > -1 ? hashIndex : path.length
+    const queryIndex = path.indexOf('?')
+    const hashIndex = path.indexOf('#')
+    const pathEnd = queryIndex > -1 ? queryIndex : hashIndex > -1 ? hashIndex : path.length
 
     data.query = {}
 
     if (queryIndex !== -1) {
-      var queryEnd = hashIndex !== -1 ? hashIndex : path.length
+      const queryEnd = hashIndex !== -1 ? hashIndex : path.length
       data.query = parseQuery(path.slice(queryIndex + 1, queryEnd))
     }
 
@@ -94,35 +80,32 @@ var VoltRouter = (function() {
   }
 
   function replacePathParams(routePath, pathname, matcher, data) {
-    pathname.replace(matcher, function() {
-      var keys = routePath.match(/:[^\/]+/g) || []
-      var values = [].slice.call(arguments, 1, -2)
+    pathname.replace(matcher, () => {
+      const keys = routePath.match(/:[^\/]+/g) || []
+      const values = [].slice.call(arguments, 1, -2)
 
-      for (var i = 0, l = keys.length; i < l; ++i) {
+      for (let i = 0, l = keys.length; i < l; ++i) {
         data.params[keys[i].replace(/:|\./g, '')] = values[i]
       }
     })
   }
 
   function prepareRoute() {
-    var path = getPath()
-    var data = { params: {} }
-    var pathname = parsePath(path, data)
+    const path = getPath()
+    const data = { params: {} }
+    const pathname = parsePath(path, data)
 
-    for (var i = 0, l = _routes.length; i < l; ++i) {
-      var route = _routes[i]
-      var routePath = route.path
+    for (let route of _routes) {
+      const routePath = route.path === '*'
+        ? '/' + route.path
+        : route.path
 
-      if (routePath === '*') {
-        routePath = '/' + routePath
-      }
-
-      var matcher = new RegExp('^' + routePath.replace(/:[^\/]+?\.{3}/g, '(.*?)').replace(/:[^\/]+/g, '([^\\/]+)') + '\/?$')
+      const matcher = new RegExp('^' + routePath.replace(/:[^\/]+?\.{3}/g, '(.*?)').replace(/:[^\/]+/g, '([^\\/]+)') + '\/?$')
       
       if (matcher.test(pathname)) {
         replacePathParams(routePath, pathname, matcher, data)
 
-        var toRoute = {
+        const toRoute = {
           name: route.name,
           path: pathname,
           fullPath: path,
@@ -131,39 +114,35 @@ var VoltRouter = (function() {
           hash: data.hash
         }
 
-        var fromRoute = VoltUtil.clone(_router)
+        const fromRoute = VoltUtil.clone(_router)
 
-        function resolveNext() {
-          for (var p in toRoute) {
-            _router[p] = toRoute[p]
-          }
+        const resolveNext = () => {
+          Object.assign(_router, toRoute)
           // TODO: init component stuff
         }
 
-        function resolveChain(prev) {
-          return function() {
-            prev(_router, toRoute, resolveNext)
-          }
+        const resolveChain = prev => () => {
+          return prev(_router, toRoute, resolveNext)
         }
 
-        var beforeHook, beforeEachHook
+        let beforeHook, beforeEachHook
 
         if (_beforeEachHook) {
-          beforeEachHook = typeof _beforeEachHook === 'string' ? VoltAction.get(_beforeEachHook) : _beforeEachHook
+          beforeEachHook = typeof _beforeEachHook === 'string'
+            ? VoltAction.get(_beforeEachHook)
+            : _beforeEachHook
         }
 
         if (route.before) {
-          beforeHook = typeof route.before === 'string' ? VoltAction.get(route.before) : route.before
+          beforeHook = typeof route.before === 'string'
+            ? VoltAction.get(route.before)
+            : route.before
         }
 
-        var hook = beforeEachHook ? beforeEachHook : beforeHook ? beforeHook : null
-        var next = beforeEachHook && beforeHook ? resolveChain(beforeHook) : resolveNext
+        const hook = beforeEachHook ? beforeEachHook : beforeHook ? beforeHook : null
+        const next = beforeEachHook && beforeHook ? resolveChain(beforeHook) : resolveNext
 
-        if (hook) {
-          hook(fromRoute, toRoute, next)
-        } else {
-          resolveNext()
-        }
+        hook ? hook(fromRoute, toRoute, next) : resolveNext()
 
         return
       }
@@ -175,30 +154,24 @@ var VoltRouter = (function() {
   }
 
   function go(options) {
-    var name = options.name
+    const name = options.name
 
-    for (var i = 0, l = _routes.length; i < l; ++i) {
-      var route = _routes[i]
-
+    for (let route of _routes) {
       if (route.name === name) {
-        var path = route.path
+        let path = route.path
 
-        path = path.replace(/:([^\/]+)/g, function(match, token) {
+        path = path.replace(/:([^\/]+)/g, (match, token) => {
           return options.params[token]
         })
 
-        var queryString = buildQueryString(options.query)
-
-        if (queryString) {
-          path += queryString
-        }
+        path += VoltUtil.buildQueryString(options.query)
 
         if (options.hash) {
           path += '#' + options.hash
         }
 
         if (_supportsPushState) {
-          var title = options.title ? options.title : route.meta ? route.meta.title : null
+          const title = options.title ? options.title : route.meta ? route.meta.title : null
 
           if (options.replace) {
             window.history.replaceState({}, title, path)
@@ -218,7 +191,7 @@ var VoltRouter = (function() {
     // TODO: Handle no route path match, use default * route or error if none exists
   }
 
-  var init = function() {
+  function init() {
     if (_supportsPushState) {
       window.onpopstate = debounceAsync(prepareRoute)
     }

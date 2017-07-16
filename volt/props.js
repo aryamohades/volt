@@ -13,7 +13,7 @@ const VoltProps = (function() {
   }
 
   function validatorFn(value, expect, type) {
-    function reject() {
+    const reject = () => {
       if (value === null) {
         propTypeError(expect, null)
       }
@@ -96,6 +96,7 @@ const VoltProps = (function() {
 
   function validate(value, expect) {
     const validator = validatorFn(value, expect, typeof value)
+    
     validator(isDef)
 
     switch (expect) {

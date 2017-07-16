@@ -1,7 +1,7 @@
-var VoltComponent = (function() {
-  var _components = {}
-  var _updateQueue = []
-  var _readyQueue = []
+const VoltComponent = (function() {
+  const _components = {}
+  const _updateQueue = []
+  let _readyQueue = []
 
   function register(name, component) {
     component._name = name
@@ -28,14 +28,13 @@ var VoltComponent = (function() {
 
   function processUpdates() {
     while (_updateQueue.length > 0) {
-      var watcher = _updateQueue.pop()
+      const watcher = _updateQueue.pop()
       watcher.update()
     }
   }
 
   function processReadyQueue() {
-    for (var i = 0, l = _readyQueue.length; i < l; ++i) {
-      var scope = _readyQueue[i]
+    for (let scope of _readyQueue) {
       if (scope._component.ready) {
         scope._component.ready.bind(scope)()
       }
@@ -45,25 +44,18 @@ var VoltComponent = (function() {
   }
 
   function setData(scope) {
-    return function(key, val) {
-      var o = {}
-      o[key] = val
+    return (key, val) => {
+      const data = VoltUtil.flatten({
+        [key]: val
+      })
 
-      var data = VoltUtil.flatten(o)
+      for (const field in data) {
+        VoltUtil.set(scope, field, data[field])
 
-      for (var field in data) {
-        var watchers = scope._dataWatchers[field]
+        const watchers = scope._dataWatchers[field] || []
 
-        if (!watchers) {
-          continue
-        }
-        
-        var dataValue = data[field]
-        VoltUtil.set(scope, field, dataValue)
-
-        for (var i = 0, l = watchers.length; i < l; ++i) {
-          var watcher = watchers[i]
-          watcher.value = dataValue
+        for (let watcher of watchers) {
+          watcher.value = data[field]
           watcher.update()
         }
       }
@@ -73,20 +65,20 @@ var VoltComponent = (function() {
   }
 
   function setupDom(html, scopeObj) {
-    var dom = VoltDom.create('div', html)
-    var queue = new VoltUtil.Queue()
+    const dom = VoltDom.create('div', html)
+    const queue = new VoltUtil.Queue()
     processScope(dom, scopeObj, queue)
 
     while (!queue.isEmpty()) {
-      var obj = queue.pop()
-      var handler = VoltBind.bindElement(obj.el, scopeObj)
+      const obj = queue.pop()
+      const handler = VoltBind.bindElement(obj.el, scopeObj)
 
       if (obj.el.hasAttribute('@if')) {
         handler('@if')
       } else if (obj.el.hasAttribute('@for')) {
         handler('@for')
       } else {
-        var newScope = setupNewComponent(obj.component, obj.el, {
+        const newScope = setupNewComponent(obj.component, obj.el, {
           scope: scopeObj.scope,
           parentScope: obj.parentScope,
           loopScope: scopeObj.loopScope
@@ -103,26 +95,24 @@ var VoltComponent = (function() {
     return dom.firstElementChild
   }
 
-  function processScope(node, scopeObj, componentQueue) {
-    var components = {}
-    var childComponents = scopeObj.scope._component.components
+  function processScope(dom, scopeObj, componentQueue) {
+    const components = {}
+    const childComponents = scopeObj.scope._component.components || []
 
-    if (childComponents) {
-      for (var i = 0, l = childComponents.length; i < l; ++i) {
-        var component = get(childComponents[i])
-        components[component.tagName] = component
-      }
+    for (let child of childComponents) {
+      const component = get(child)
+      components[component.tagName] = component
     }
 
-    var queue = new VoltUtil.Queue()
+    const queue = new VoltUtil.Queue()
 
-    for (var i = 0, l = node.children.length; i < l; ++i) {
-      queue.push(node.children[i])
+    for (let child of dom.children) {
+      queue.push(child)
     }
 
     while (!queue.isEmpty()) {
-      var el = queue.pop()
-      var tagName = el.tagName.toLowerCase()
+      const el = queue.pop()
+      const tagName = el.tagName.toLowerCase()
 
       extractChildren(el, queue)
 
@@ -143,9 +133,7 @@ var VoltComponent = (function() {
       return
     }
 
-    for (var i = 0, l = el.children.length; i < l; ++i) {
-      var child = el.children[i]
-
+    for (let child of el.children) {
       if (!child.hasAttribute('@else-if') && !child.hasAttribute('@else')) {
         queue.push(child)
       }
@@ -153,11 +141,11 @@ var VoltComponent = (function() {
   }
 
   function setupNewComponent(component, el, scopeObj) {
-    var template = VoltTemplate.get(component.render)
-    var dom = VoltDom.create('div', template)
+    const template = VoltTemplate.get(component.render)
+    const dom = VoltDom.create('div', template)
     VoltDom.copyAttributes(el, dom.firstElementChild)
 
-    var scope = initializeScope(component)
+    const scope = initializeScope(component)
     scope._el = dom.firstElementChild
 
     setComponentProps(el, component, {
@@ -169,7 +157,7 @@ var VoltComponent = (function() {
     initComponentData(component, scope)
     initComponentMethods(component, scope)
 
-    var slots = getSlots(el)
+    const slots = getSlots(el)
 
     if (slots) {
       fillSlots(scope._el, slots.slots, slots.hasMany)
@@ -179,11 +167,12 @@ var VoltComponent = (function() {
     VoltBind.bindAttributes(scope._el, scopeObj)
 
     _readyQueue.push(scope)
+
     return scope
   }
 
   function initializeScope(component) {
-    var scope = {
+    const scope = {
       _dataWatchers: {},
       _stateWatchers: {},
       _listeners: [],
@@ -201,19 +190,21 @@ var VoltComponent = (function() {
     scope.$bindData = VoltBind.bindData.bind(scope)
     scope.$request = VoltRequest.prepareRequest.bind(scope)
     scope.$action = VoltAction.dispatch.bind(scope)
-    
+
     return scope
   }
 
   function setComponentProps(el, component, scopeObj) {
-    var scope = scopeObj.scope
-    var props = component.props
+    const scope = scopeObj.scope
+    const props = component.props
 
-    if (!props) return
+    if (!props) {
+      return
+    }
 
-    for (var p in props) {
-      var value = el.getAttribute(p)
-      var propConfig = props[p]
+    for (const p in props) {
+      const value = el.getAttribute(p)
+      const propConfig = props[p]
 
       if (value) {
         setProp(p, value, propConfig, scopeObj)
@@ -230,7 +221,7 @@ var VoltComponent = (function() {
   }
 
   function setProp(prop, value, config, scopeObj) {
-    var propValue = VoltUtil.get(scopeObj.loopScope, value)
+    let propValue = VoltUtil.get(scopeObj.loopScope, value)
 
     if (!propValue) {
       propValue = VoltUtil.get(scopeObj.parentScope, value)
@@ -239,7 +230,7 @@ var VoltComponent = (function() {
     propValue = propValue !== undefined ? propValue : value
 
     if (config.type) {
-      var convertedValue = VoltProps.validate(propValue, config.type)
+      const convertedValue = VoltProps.validate(propValue, config.type)
       scopeObj.scope.$props[prop] = convertedValue
     } else {
       scopeObj.scope.$props[prop] = propValue
@@ -255,50 +246,49 @@ var VoltComponent = (function() {
   }
 
   function initComponentData(component, scope) {
-    if (!component.data) return
-
-    var componentData = component.data.bind(scope)()
-
-    for (var p in componentData) {
-      scope[p] = componentData[p]
+    if (!component.data) {
+      return
     }
 
-    var flatData = VoltUtil.flatten(componentData)
+    const data = component.data.bind(scope)()
+    const flatData = VoltUtil.flatten(data)
 
-    for (var p in flatData) {
+    VoltUtil.assign(scope, data)
+
+    for (const p in flatData) {
       scope._dataWatchers[p] = []
     }
   }
 
   function initComponentMethods(component, scope) {
-    if (!component.methods) return
-
-    var componentMethods = component.methods.bind(scope)()
-
-    for (var p in componentMethods) {
-      scope[p] = componentMethods[p]
+    if (!component.methods) {
+      return
     }
+
+    const methods = component.methods.bind(scope)()
+
+    VoltUtil.assign(scope, methods)
   }
 
   function getSlots(el) {
-    var slots = {}
-    var hasMany = false
+    let slots = {}
+    let hasMany = false
 
     if (!el.firstElementChild) {
       return null
     }
 
-    var namedSlots = el.querySelectorAll('[slot]')
+    const namedSlots = el.querySelectorAll('[slot]')
 
     if (namedSlots.length > 0) {
       hasMany = true
 
-      for (var i = 0, l = namedSlots.length; i < l; ++i) {
-        var slotName = namedSlots[i].getAttribute('slot')
-        slots[slotName] = namedSlots[i]
+      for (let slot of namedSlots) {
+        const slotName = slot.getAttribute('slot')
+        slots[slotName] = slot
       }
     } else {
-      var f = VoltDom.fragment()
+      const f = VoltDom.fragment()
       slots = VoltDom.transferChildren(el, f)
     }
 
@@ -309,40 +299,38 @@ var VoltComponent = (function() {
   }
 
   function fillSlots(el, slots, hasMany) {
-    var emptySlots = el.getElementsByTagName('slot')
-    var numSlots = emptySlots.length
+    const emptySlots = el.getElementsByTagName('slot')
 
-    if (numSlots === 1) {
-      var slot = emptySlots[0]
+    if (emptySlots.length === 1) {
+      let slot = emptySlots[0]
+
       if (!slot.hasAttribute('name') && !hasMany) {
-        VoltDom.replace(slot, slots)
-        return
+        return VoltDom.replace(slot, slots)
       }
-    } else if (typeof slots !== 'object') {
-      return
     }
     
-    for (var i = 0; i < numSlots; ++i) {
-      var slot = emptySlots[i]
-      var name = slot.getAttribute('name')
+    if (VoltUtil.isObject(slots)) {
+      for (let slot of emptySlots) {
+        const name = slot.getAttribute('name')
 
-      if (slots[name]) {
-        VoltDom.replace(slot, slots[name])
+        if (slots[name]) {
+          VoltDom.replace(slot, slots[name])
+        }
       }
     }
   }
 
   function initMain(name) {
-    var component = get(name)
-    var template = VoltTemplate.get(component.render)
-    var scope = initializeScope(component)
+    const component = get(name)
+    const template = VoltTemplate.get(component.render)
+    const scope = initializeScope(component)
     
     initComponentData(component, scope)
     initComponentMethods(component, scope)
 
     _readyQueue.push(scope)
 
-    var dom = setupDom(template, {
+    const dom = setupDom(template, {
       scope: scope,
       parentScope: null,
       loopScope: null

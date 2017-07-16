@@ -74,7 +74,7 @@ const VoltRequest = (function() {
       return options.params[token]
     })
 
-    requestUrl += buildQueryString(options.query)
+    requestUrl += VoltUtil.buildQueryString(options.query)
 
     request.open(options.method, requestUrl, true)
 
@@ -112,21 +112,6 @@ const VoltRequest = (function() {
 
   function beforeRequest(hook) {
     _beforeEachHook = hook
-  }
-
-  function buildQueryString(query) {
-    if (!query) {
-      return ''
-    }
-
-    let queryString = '?'
-
-    for (const key in query) {
-      queryString += key + '=' + query[key] + '&'
-    }
-
-    queryString = queryString.slice(0, -1)
-    return queryString
   }
 
   return {

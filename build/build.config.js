@@ -1,6 +1,7 @@
 require('dotenv').config()
 
 let config = {
+  "main": "main.js",
   "path": "./dist",
   "template": {
     "name": "index.html",
