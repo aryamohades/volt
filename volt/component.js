@@ -183,6 +183,7 @@ const VoltComponent = (function() {
 
     scope.$refs = {}
     scope.$props = {}
+    scope.$route = VoltRouter.router,
     scope.$setData = setData(scope)
     scope.$setState = VoltState.setState
     scope.$bind = VoltBind.bind.bind(scope)
@@ -320,7 +321,7 @@ const VoltComponent = (function() {
     }
   }
 
-  function initMain(name) {
+  function initComponent(name) {
     const component = get(name)
     const template = VoltTemplate.get(component.render)
     const scope = initializeScope(component)
@@ -346,7 +347,7 @@ const VoltComponent = (function() {
     addUpdate: addUpdate,
     setupDom: setupDom,
     register: register,
-    initMain: initMain,
+    initComponent: initComponent,
     mountComponent: mountComponent
   }
 })();

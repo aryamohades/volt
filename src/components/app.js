@@ -66,10 +66,10 @@ Volt.component('app', {
     'another'
   ],
 
-  ready: function() {
+  ready() {
   },
 
-  data: function() {
+  data() {
     return {
       checked: true,
       userInfo: null,
@@ -108,7 +108,7 @@ Volt.component('app', {
     }
   },
 
-  methods: function() {
+  methods() {
     return {
       changeImgSrc: (e) => this.$setData('srcIndex', 1 - this.srcIndex),
 
@@ -134,25 +134,29 @@ Volt.component('app', {
         }
       ),
 
-      getUser: this.$request('getUser', {
-        params: {
-          id: 1
-        },
-        query: {
-          q: 'hello'
-        },
-        success: res => this.$setData('userInfo', res.data.data)
-      }),
+      getUser: () => {
+        this.$request('getUser', {
+          params: {
+            id: 1
+          },
+          query: {
+            q: 'hello'
+          },
+          success: res => this.$setData('userInfo', res.data.data)
+        })
+      },
 
-      getUsers: this.$request('getUsers', {
-        success: res => {
-          console.log('Success', res)
-          this.$setData('users', res.data.data)
-        },
-        error: err => {
-          console.log('Error', err)
-        }
-      }),
+      getUsers: () => {
+        this.$request('getUsers', {
+          success: res => {
+            console.log('Success', res)
+            this.$setData('users', res.data.data)
+          },
+          error: err => {
+            console.log('Error', err)
+          }
+        })
+      },
 
       removeUsers: e => this.$setData('users', null)
     }

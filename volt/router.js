@@ -2,6 +2,7 @@ const VoltRouter = (function() {
   const _supportsPushState = typeof window.history.pushState === 'function'
   const _callAsync = typeof setImmediate === 'function' ? setImmediate : setTimeout
   const _routes = []
+  let _anchor
   let _beforeEachHook
   let _asyncId
 
@@ -80,11 +81,11 @@ const VoltRouter = (function() {
   }
 
   function replacePathParams(routePath, pathname, matcher, data) {
-    pathname.replace(matcher, () => {
+    pathname.replace(matcher, function() {
       const keys = routePath.match(/:[^\/]+/g) || []
       const values = [].slice.call(arguments, 1, -2)
 
-      for (let i = 0, l = keys.length; i < l; ++i) {
+      for (let i = 0; i < keys.length; ++i) {
         data.params[keys[i].replace(/:|\./g, '')] = values[i]
       }
     })
@@ -118,7 +119,9 @@ const VoltRouter = (function() {
 
         const resolveNext = () => {
           Object.assign(_router, toRoute)
-          // TODO: init component stuff
+          const view = VoltComponent.initComponent(route.component)
+          VoltDom.replace(_anchor, view)
+          _anchor = view
         }
 
         const resolveChain = prev => () => {
@@ -192,6 +195,8 @@ const VoltRouter = (function() {
   }
 
   function init() {
+    _anchor = document.getElementsByTagName('router-view')[0]
+
     if (_supportsPushState) {
       window.onpopstate = debounceAsync(prepareRoute)
     }

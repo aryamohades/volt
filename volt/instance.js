@@ -18,7 +18,7 @@ const Volt = (function() {
 
     VoltState.init()
 
-    const dom = VoltComponent.initMain(options.main)
+    const dom = VoltComponent.initComponent(options.main)
     const mount = VoltDom.get(options.mount)
 
     VoltComponent.mountComponent(dom, mount)

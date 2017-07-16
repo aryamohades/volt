@@ -101,13 +101,11 @@ const VoltRequest = (function() {
       options.params = {}
     }
 
-    return function() {
-      if (_beforeEachHook) {
-        _beforeEachHook(options)
-      }
-
-      makeRequest(options, scope)
+    if (_beforeEachHook) {
+      _beforeEachHook(options)
     }
+
+    makeRequest(options, scope)
   }
 
   function beforeRequest(hook) {

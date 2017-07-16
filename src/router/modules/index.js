@@ -2,7 +2,7 @@ Volt.route([
   {
     name: 'users',
     path: '/users/:id',
-    component: 'UserDetail',
+    component: 'userDetail',
     before: 'requireAuth',
     meta: {
       title: 'Home',
