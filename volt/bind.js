@@ -33,6 +33,10 @@ const VoltBind = (function() {
         bindTo = el.getAttribute(type)
       }
 
+      const methodObj = getMethodArgs(bindTo)
+      bindTo = methodObj.method
+      const args = methodObj.args
+
       el.removeAttribute(type)
 
       if (type.startsWith('@')) {
@@ -40,14 +44,14 @@ const VoltBind = (function() {
       }
 
       if (_interactHandlers[type]) {
-        return _interactHandlers[type](el, bindTo, scopeObj.scope)
+        return _interactHandlers[type](el, bindTo, scopeObj, args)
       }
 
       const found = getValueFromScope(bindTo, scopeObj)
       const value = found.value
 
       if (type === 'v-ref') {
-        return bindRef(el, bindTo, value, scopeObj.scope)
+        return bindRef(el, bindTo, value, scopeObj, args)
       }
 
       watcher.value = value
@@ -55,7 +59,7 @@ const VoltBind = (function() {
       watcher.bindTo = bindTo
 
       if (!found.inLoop) {
-        processValue(value, bindTo, watcher)
+        processValue(value, bindTo, watcher, args)
       }
 
       if (_bindHandlers[type]) {
@@ -96,14 +100,14 @@ const VoltBind = (function() {
     }
   }
 
-  function processValue(value, bindTo, watcher) {
+  function processValue(value, bindTo, watcher, args) {
     const scope = watcher.scopeObj.scope
     const type = typeof value
 
     if (VoltUtil.isObject(value) && value._bind) {
       value._bind.bind(scope)(watcher)
     } else if (type === 'function') {
-      watcher.value = value()
+      watcher.value = call(value, args, watcher.scopeObj)
     } else {
       watcher.dataFields = [bindTo]
       VoltUtil.push(bindTo, watcher, scope._dataWatchers)
@@ -151,12 +155,12 @@ const VoltBind = (function() {
     VoltDom.clear(watcher.el)
   }
 
-  function bindRef(el, bindTo, value, scope) {
-    if (typeof value === 'function') {
-      value = value()
-    }
+  function bindRef(el, bindTo, value, scopeObj, args) {
+    const scope = scopeObj.scope
 
-    if (typeof value === 'string') {
+    if (typeof value === 'function') {
+      scope.$refs[call(value, args, scopeObj)] = el
+    } else if (typeof value === 'string') {
       scope.$refs[value] = el
     } else {
       scope.$refs[bindTo] = el
@@ -229,8 +233,24 @@ const VoltBind = (function() {
     VoltDom.removeMulti(remove)
   }
 
-  function bindClick(el, bindTo, scope) {
-    const handler = scope[bindTo].bind(scope)
+  function getClickHandler(method, args, scopeObj) {
+    if (args) {
+      args = args.map(param => getValueFromScope(param, scopeObj).value)
+    }
+    
+    const scope = scopeObj.scope
+
+    return function() {
+      if (args) {
+        scope[method].apply(scope, args)
+      } else {
+        scope[method].bind(scope)()
+      }
+    }
+  }
+
+  function bindClick(el, method, scopeObj, args) {
+    const handler = getClickHandler(method, args, scopeObj)
 
     const listener = {
       el: el,
@@ -238,19 +258,19 @@ const VoltBind = (function() {
       handler: handler
     }
 
-    scope._listeners.push(listener)
+    scopeObj.scope._listeners.push(listener)
     el.addEventListener('click', handler)
   }
 
   function updateAttribute() {
     const watcher = this
-    watcher.value = getUpdateValue(watcher)
+    watcher.value = getWatcherValue(watcher)
     watcher.el.setAttribute(watcher.attr, watcher.value)
   }
 
   function updateText() {
     const watcher = this
-    watcher.value = getUpdateValue(watcher)
+    watcher.value = getWatcherValue(watcher)
     VoltDom.renderText(watcher.el, watcher.value)
   }
 
@@ -308,7 +328,7 @@ const VoltBind = (function() {
   function updateFor() {
     const watcher = this
     const scope = watcher.scopeObj.scope
-    watcher.value = getUpdateValue(watcher)
+    watcher.value = getWatcherValue(watcher)
 
     if (!Array.isArray(watcher.value)) {
       clearFor(watcher)
@@ -339,7 +359,7 @@ const VoltBind = (function() {
     let deactivate
 
     for (let w of watcher.chain) {
-      w.value = getUpdateValue(w)
+      w.value = getWatcherValue(w)
 
       if (w.value  === true && w !== w.activeWatcher && !hasActive) {
         if (w.activeWatcher) {
@@ -464,16 +484,55 @@ const VoltBind = (function() {
     }
   }
 
-  function getUpdateValue(watcher) {
+  function getWatcherValue(watcher) {
     const scope = watcher.scopeObj.scope
+    let value
 
     if (watcher.fn) {
-      const stateArgs = watcher.stateFields.map(field => VoltState.get(field))
+      const stateArgs = watcher.stateFields.map(field => VoltState.getState(field))
       const dataArgs = watcher.dataFields.map(field => VoltUtil.get(scope, field))
-      return watcher.fn.apply(this, stateArgs.concat(dataArgs))
+      value = watcher.fn.apply(this, stateArgs.concat(dataArgs))
     } else {
-      return watcher.value
+      value = watcher.value
     }
+
+    scope[watcher.bindTo] = value
+    return value
+  }
+
+  function getMethodArgs(bindTo) {
+    let method, args
+
+    const indexParen = bindTo.indexOf('(')
+
+    if (indexParen !== -1) {
+      method = bindTo.slice(0, indexParen)
+      args = /\(\s*([^)]+?)\s*\)/.exec(bindTo)
+
+      if (args && args[1]) {
+        args = args[1].split(/\s*,\s*/);
+      }
+    } else {
+      method = bindTo
+    }
+
+    return {
+      method: method,
+      args: args
+    }
+  }
+
+  function call(fn, args, scopeObj) {
+    let value
+
+    if (args) {
+      args = args.map(param => getValueFromScope(param, scopeObj).value)
+      value = fn.apply(scopeObj.scope, args)
+    } else {
+      value = value()
+    }
+
+    return value
   }
 
   function parseFor(value) {

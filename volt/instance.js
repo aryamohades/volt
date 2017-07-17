@@ -22,6 +22,7 @@ const Volt = (function() {
     const mount = VoltDom.get(options.mount)
 
     VoltComponent.mountComponent(dom, mount)
+
     VoltRouter.init()
 
     console.timeEnd()

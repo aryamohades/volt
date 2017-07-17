@@ -183,6 +183,7 @@ const VoltComponent = (function() {
 
     scope.$refs = {}
     scope.$props = {}
+    scope.$go = VoltRouter.go,
     scope.$route = VoltRouter.router,
     scope.$setData = setData(scope)
     scope.$setState = VoltState.setState

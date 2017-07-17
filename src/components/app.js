@@ -13,7 +13,8 @@ Volt.request('getUser', {
 // Define template
 Volt.template('app', `
 <div class="page">
-  <div @ref="lol" @text="name.firstName"></div>
+  <button @click="goToUserDetail">Go To User Detail</button>
+  <div @ref="lol" @text="modifiedName(name.firstName)"></div>
   <div>
     <img style="height:100px" @src="getSrc">
     <button @click="changeImgSrc">Change Image</button>
@@ -36,6 +37,7 @@ Volt.template('app', `
     <div @text="user.last_name"></div>
     <img @src="user.avatar">
     <div @for="post in user.posts" @text="post"></div>
+    <button @click="methodWithArgs(user.first_name)">Method with args</button>
   </div>
   <div @else-if="second" @text="user.first_name" @for="user in users" style="border: 1px solid purple"></div>
   <div @else>hey</div>
@@ -47,11 +49,11 @@ Volt.template('app', `
     <div>Arya</div>
   </example>
 
-  <router-view></router-view>
   <example @ref="lolref" fnFromProps="fnAsProp" number="50">
     <another></another>
     <button @click="logMessage">Log Message</button>
   </example>
+  <div router-view></div>
 <!--   <div>Checkbox</div>
   <input type="checkbox" value="checkbox value" @model="checked"> -->
 </div>
@@ -71,6 +73,7 @@ Volt.component('app', {
 
   data() {
     return {
+      message: 'Hello there',
       checked: true,
       userInfo: null,
       users: [
@@ -110,6 +113,26 @@ Volt.component('app', {
 
   methods() {
     return {
+      methodWithArgs: name => {
+        console.log('Hello ' + name)
+      },
+
+      modifiedName: name => {
+        return 'Mr. ' + name
+      },
+
+      goToUserDetail: (e) => {
+        this.$go('userDetail', {
+          params: {
+            id: 2
+          },
+
+          query: {
+            q: 'Hello'
+          }
+        })
+      },
+
       changeImgSrc: (e) => this.$setData('srcIndex', 1 - this.srcIndex),
 
       getSrc: this.$bindData('srcIndex', idx => this.sources[idx]),
@@ -124,7 +147,7 @@ Volt.component('app', {
 
       changeRandomValue: () => this.$setState('randomValue', Math.random()),
 
-      logMessage: e => this.$action('logMessage', 'Hello ' + this.name.firstName),
+      logMessage: e => this.$action('logMessage', 'Hello ' + this.city),
 
       fullName: this.$bindData(['userInfo.first_name', 'userInfo.last_name'],
         (firstName, lastName) => {

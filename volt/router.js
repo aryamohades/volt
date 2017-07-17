@@ -156,9 +156,7 @@ const VoltRouter = (function() {
     _beforeEachHook = hook
   }
 
-  function go(options) {
-    const name = options.name
-
+  function go(name, options) {
     for (let route of _routes) {
       if (route.name === name) {
         let path = route.path
@@ -195,7 +193,7 @@ const VoltRouter = (function() {
   }
 
   function init() {
-    _anchor = document.getElementsByTagName('router-view')[0]
+    _anchor = document.querySelector('[router-view]')
 
     if (_supportsPushState) {
       window.onpopstate = debounceAsync(prepareRoute)

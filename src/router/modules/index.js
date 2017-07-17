@@ -1,6 +1,6 @@
 Volt.route([
   {
-    name: 'users',
+    name: 'userDetail',
     path: '/users/:id',
     component: 'userDetail',
     before: 'requireAuth',
