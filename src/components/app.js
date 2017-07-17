@@ -29,8 +29,11 @@ Volt.template('app', `
 
   <button @click="toggleFirst">Toggle First Condition</button>
   <button @click="toggleSecond">Toggle Second Condition</button>
+
   <div @if="first">First</div>
   <div @else-if="second">Second</div>
+  <div @else>Third</div>
+
   <div @if="first" @for="user in users" style="border: 1px solid green">
     <div>Hello</div>
     <div @text="user.id"></div>
@@ -54,8 +57,12 @@ Volt.template('app', `
     <button @click="logMessage">Log Message</button>
   </example>
   <div router-view></div>
-<!--   <div>Checkbox</div>
-  <input type="checkbox" value="checkbox value" @model="checked"> -->
+  <div>Input test</div>
+  <input @model="inputText">
+  <button @click="changeInputText">Change Input Text</button>
+  <input type="checkbox" @model="checked">
+  <input type="color">
+  <input type="radio" @model="checked">
 </div>
 `)
 
@@ -75,6 +82,8 @@ Volt.component('app', {
     return {
       message: 'Hello there',
       checked: true,
+      value: 0,
+      inputText: 'Initial input text',
       userInfo: null,
       users: [
         {
@@ -113,6 +122,14 @@ Volt.component('app', {
 
   methods() {
     return {
+      inputChange: e => {
+        console.log('Input changed')
+      },
+
+      changeInputText: e => {
+        this.$setData('inputText', ++this.value)
+      },
+
       methodWithArgs: name => {
         console.log('Hello ' + name)
       },
@@ -121,7 +138,7 @@ Volt.component('app', {
         return 'Mr. ' + name
       },
 
-      goToUserDetail: (e) => {
+      goToUserDetail: e => {
         this.$go('userDetail', {
           params: {
             id: 2
@@ -133,7 +150,7 @@ Volt.component('app', {
         })
       },
 
-      changeImgSrc: (e) => this.$setData('srcIndex', 1 - this.srcIndex),
+      changeImgSrc: e => this.$setData('srcIndex', 1 - this.srcIndex),
 
       getSrc: this.$bindData('srcIndex', idx => this.sources[idx]),
 

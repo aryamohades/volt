@@ -54,6 +54,31 @@ const VoltUpdate = (function() {
     }
   }
 
+  function updateModelText(watcher) {
+    watcher.el.value = watcher.value
+  }
+
+  function updateModelChecked(watcher) {
+    watcher.el.checked = watcher.value
+  }
+  
+  function updateModelColor(watcher) {
+    watcher.el.value = watcher.value
+  }
+
+  const _modelUpdaters = {
+    text: updateModelText,
+    checkbox: updateModelChecked,
+    radio: updateModelChecked,
+    color: updateModelColor
+  }
+
+  function updateModel() {
+    const watcher = this
+    const updater = _modelUpdaters[watcher.type]
+    updater(watcher)
+  }
+
   function getForDom(watcher) {
     const loopScope = watcher.scopeObj.loopScope || {}
     const dom = VoltDom.fragment()
@@ -197,6 +222,7 @@ const VoltUpdate = (function() {
     updateText: updateText,
     updateAttribute: updateAttribute,
     updateFor: updateFor,
-    updateIf: updateIf
+    updateIf: updateIf,
+    updateModel: updateModel
   }
 })()

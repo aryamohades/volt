@@ -15,6 +15,11 @@ Volt.route([
     }
   },
   {
+    name: 'dbmonster',
+    path: '/dbmonster',
+    component: 'dbmonster'
+  },
+  {
     name: 'notFound',
     path: '*',
     component: 'NotFound',

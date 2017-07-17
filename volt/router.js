@@ -2,8 +2,8 @@ const VoltRouter = (function() {
   const _supportsPushState = typeof window.history.pushState === 'function'
   const _callAsync = typeof setImmediate === 'function' ? setImmediate : setTimeout
   const _routes = []
-  let _anchor
   let _beforeEachHook
+  let _anchor
   let _asyncId
 
   const _router = {
@@ -17,7 +17,7 @@ const VoltRouter = (function() {
 
   function debounceAsync(callback) {
     return () => {
-      if (_asyncId != null) {
+      if (_asyncId) {
         return
       }
       _asyncId = _callAsync(() => {

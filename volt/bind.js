@@ -3,7 +3,8 @@ const VoltBind = (function() {
   const _bindHandlers = {
     'v-text': bindText,
     'v-for': bindFor,
-    'v-if': bindIf
+    'v-if': bindIf,
+    'v-model': bindModel
   }
 
   const _interactHandlers = {
@@ -71,46 +72,6 @@ const VoltBind = (function() {
       VoltComponent.addUpdate(watcher)
 
       return watcher
-    }
-  }
-
-  function getValueFromScope(name, scopeObj) {
-    let value
-    let inLoop = false
-
-    if (scopeObj.loopScope) {
-      value = VoltUtil.get(scopeObj.loopScope, name)
-
-      if (value !== undefined) {
-        inLoop = true
-      }
-    }
-
-    if (value === undefined) {
-      value = VoltUtil.get(scopeObj.scope, name)
-    }
-
-    if (value === undefined) {
-      value = VoltUtil.get(scopeObj.parentScope, name)
-    }
-
-    return {
-      value: value,
-      inLoop: inLoop
-    }
-  }
-
-  function processValue(value, bindTo, watcher, args) {
-    const scope = watcher.scopeObj.scope
-    const type = typeof value
-
-    if (VoltUtil.isObject(value) && value._bind) {
-      value._bind.bind(scope)(watcher)
-    } else if (type === 'function') {
-      watcher.value = call(value, args, watcher.scopeObj)
-    } else {
-      watcher.dataFields = [bindTo]
-      VoltUtil.push(bindTo, watcher, scope._dataWatchers)
     }
   }
 
@@ -193,18 +154,16 @@ const VoltBind = (function() {
         watcherNode.dataFields = []
       }
 
+      if (type !== '@if') {
+        remove.push(el)
+        el.removeAttribute(type)
+      }
+
       watcherNode.html = el.outerHTML
       watcherNode.chain = chain
       watcherNode.bindTo = attr
       watcherNode.type = type
       watcherNode.el = el
-
-      if (type !== '@if') {
-        remove.push(el)
-        el.removeAttribute(type)
-      } else {
-        VoltDom.clear(el)
-      }
     }
   }
 
@@ -230,23 +189,70 @@ const VoltBind = (function() {
       binder(next, null, '@else')
     }
 
+    VoltDom.clear(watcher.el)
     VoltDom.removeMulti(remove)
   }
 
-  function getClickHandler(method, args, scopeObj) {
-    if (args) {
-      args = args.map(param => getValueFromScope(param, scopeObj).value)
-    }
-    
-    const scope = scopeObj.scope
+  function checkedHandler(watcher) {
+    const scope = watcher.scopeObj.scope
 
-    return () => {
-      if (args) {
-        scope[method].apply(scope, args)
-      } else {
-        scope[method].bind(scope)()
-      }
+    return e => {
+      debugger
+      scope[watcher.bindTo] = e.target.checked
     }
+  }
+
+  function inputHandler(watcher) {
+    const scope = watcher.scopeObj.scope
+
+    return e => {
+      scope[watcher.bindTo] = e.target.value
+    }
+  }
+
+  const _modelHandlers = {
+    text: inputHandler,
+    color: inputHandler,
+    checkbox: checkedHandler,
+    radio: checkedHandler
+  }
+
+  function getModelHandler(type, watcher) {
+    const handler = _modelHandlers[type]
+    return handler(watcher)
+  }
+
+  function bindModel(watcher) {
+    const scope = watcher.scopeObj.scope
+    const type = watcher.el.type
+    watcher.update = VoltUpdate.updateModel
+    watcher.type = type
+
+    const handler = getModelHandler(type, watcher)
+
+    if (type === 'radio') {
+      watcher.el.onchange = handler
+      return
+    }
+
+    const listenerType = type === 'text'
+      ? 'input'
+      : 'change'
+
+    const listener = {
+      el: watcher.el,
+      type: listenerType,
+      inputType: type,
+      handler: handler
+    }
+
+    scope._listeners.push(listener)
+    watcher.el.addEventListener(listenerType, handler)
+  }
+
+  function bindChange(watcher) {
+    // TODO, make sure manually setting values through the updater functions
+    // triggers the change event
   }
 
   function bindClick(el, method, scopeObj, args) {
@@ -260,6 +266,22 @@ const VoltBind = (function() {
 
     scopeObj.scope._listeners.push(listener)
     el.addEventListener('click', handler)
+  }
+
+  function getClickHandler(method, args, scopeObj) {
+    if (args) {
+      args = args.map(param => getValueFromScope(param, scopeObj).value)
+    }
+    
+    const scope = scopeObj.scope
+
+    return e => {
+      if (args) {
+        scope[method].apply(scope, args)
+      } else {
+        scope[method].bind(scope)()
+      }
+    }
   }
 
   function bind(options, fn) {
@@ -311,6 +333,46 @@ const VoltBind = (function() {
   function addDataWatcher(watcher, scope) {
     for (let field of watcher.dataFields) {
       VoltUtil.push(field, watcher, scope._dataWatchers)
+    }
+  }
+
+  function getValueFromScope(name, scopeObj) {
+    let value
+    let inLoop = false
+
+    if (scopeObj.loopScope) {
+      value = VoltUtil.get(scopeObj.loopScope, name)
+
+      if (value !== undefined) {
+        inLoop = true
+      }
+    }
+
+    if (value === undefined) {
+      value = VoltUtil.get(scopeObj.scope, name)
+    }
+
+    if (value === undefined) {
+      value = VoltUtil.get(scopeObj.parentScope, name)
+    }
+
+    return {
+      value: value,
+      inLoop: inLoop
+    }
+  }
+
+  function processValue(value, bindTo, watcher, args) {
+    const scope = watcher.scopeObj.scope
+    const type = typeof value
+
+    if (VoltUtil.isObject(value) && value._bind) {
+      value._bind.bind(scope)(watcher)
+    } else if (type === 'function') {
+      watcher.value = call(value, args, watcher.scopeObj)
+    } else {
+      watcher.dataFields = [bindTo]
+      VoltUtil.push(bindTo, watcher, scope._dataWatchers)
     }
   }
 
