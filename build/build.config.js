@@ -40,6 +40,7 @@ let config = {
 
     }
   },
+  transpileJs: false,
   babelConfig: {
     "presets": [
       [

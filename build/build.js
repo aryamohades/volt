@@ -100,6 +100,7 @@ const coreFiles = [
   'util.js',
   'props.js',
   'bind.js',
+  'update.js',
   'dom.js',
   'template.js',
   'state.js',
@@ -171,7 +172,7 @@ srcJs += io.readFile(path.join(__dirname, [srcDir, config.main].join('/'))) + '\
 let js = coreJs + srcJs
 
 // Transpile js using babel
-if (config.babelConfig) {
+if (config.transpileJs && config.babelConfig) {
   js = babel.transform(js, config.babelConfig).code
 }
 

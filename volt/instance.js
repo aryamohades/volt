@@ -59,7 +59,6 @@ const Volt = (function() {
     // Request api
     api: VoltRequest.api,
     request: VoltRequest.register,
-    makeRequest: VoltRequest.makeRequest,
     beforeRequest: VoltRequest.beforeRequest,
 
     // Props api

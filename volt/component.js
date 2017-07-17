@@ -84,6 +84,9 @@ const VoltComponent = (function() {
           loopScope: scopeObj.loopScope
         })
 
+        processUpdates()
+        processReadyQueue()
+
         processScope(newScope._el, {
           scope: newScope,
           parentScope: obj.parentScope,
@@ -337,10 +340,10 @@ const VoltComponent = (function() {
       parentScope: null,
       loopScope: null
     })
-
+    
     processUpdates()
     processReadyQueue()
-    
+
     return dom
   }
 

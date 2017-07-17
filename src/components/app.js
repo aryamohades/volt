@@ -14,7 +14,7 @@ Volt.request('getUser', {
 Volt.template('app', `
 <div class="page">
   <button @click="goToUserDetail">Go To User Detail</button>
-  <div @ref="lol" @text="modifiedName(name.firstName)"></div>
+  <div @text="modifiedName(name.firstName)"></div>
   <div>
     <img style="height:100px" @src="getSrc">
     <button @click="changeImgSrc">Change Image</button>
@@ -29,7 +29,8 @@ Volt.template('app', `
 
   <button @click="toggleFirst">Toggle First Condition</button>
   <button @click="toggleSecond">Toggle Second Condition</button>
-  
+  <div @if="first">First</div>
+  <div @else-if="second">Second</div>
   <div @if="first" @for="user in users" style="border: 1px solid green">
     <div>Hello</div>
     <div @text="user.id"></div>
@@ -40,7 +41,6 @@ Volt.template('app', `
     <button @click="methodWithArgs(user.first_name)">Method with args</button>
   </div>
   <div @else-if="second" @text="user.first_name" @for="user in users" style="border: 1px solid purple"></div>
-  <div @else>hey</div>
   <button @click="getUsers">Get Users API</button>
   <button @click="removeUsers">Remove Users</button>
   <div @text="city"></div>
@@ -50,7 +50,7 @@ Volt.template('app', `
   </example>
 
   <example @ref="lolref" fnFromProps="fnAsProp" number="50">
-    <another></another>
+    <another city="city"></another>
     <button @click="logMessage">Log Message</button>
   </example>
   <div router-view></div>
