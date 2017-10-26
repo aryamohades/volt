@@ -16,6 +16,6 @@ router.get('*', (req, res) => {
 app.use(router)
 
 const server = http.createServer(app)
-server.listen(process.env.DEV_PORT, () => {
+server.listen(process.env.DEV_PORT || 3000, () => {
   console.log('Dev server running')
 })

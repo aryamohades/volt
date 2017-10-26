@@ -13,7 +13,6 @@ Volt.request('getUser', {
 // Define template
 Volt.template('app', `
 <div class="page">
-  <button @click="goToUserDetail">Go To User Detail</button>
   <div @text="modifiedName(name.firstName)"></div>
   <div>
     <img style="height:100px" @src="getSrc">
@@ -47,22 +46,12 @@ Volt.template('app', `
   <button @click="getUsers">Get Users API</button>
   <button @click="removeUsers">Remove Users</button>
   <div @text="city"></div>
-  <example id="blah" name="blah" @click="logMessage">
-    <div @text="city"></div>
-    <div>Arya</div>
-  </example>
 
-  <example @ref="lolref" fnFromProps="fnAsProp" number="50">
-    <another city="city"></another>
-    <button @click="logMessage">Log Message</button>
-  </example>
   <div router-view></div>
   <div>Input test</div>
   <input @model="inputText">
   <button @click="changeInputText">Change Input Text</button>
   <input type="checkbox" @model="checked">
-  <input type="color">
-  <input type="radio" @model="checked">
 </div>
 `)
 
@@ -71,7 +60,6 @@ Volt.component('app', {
 
   // Components that are children of this component
   components: [
-    'example',
     'another'
   ],
 
